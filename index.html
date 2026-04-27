@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=yes">
+<title>TFTontos</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── DARK MODE (default) ── */
+/* ── DARK MODE (default) ── */
+:root{
+  --bg:#0d1117;--bg2:#161b27;--bg3:#1c2333;--bg4:#232d40;
+  --border:rgba(148,163,184,0.1);--border2:rgba(148,163,184,0.22);
+  --accent:#3b82f6;--accent2:#60a5fa;
+  --gold:#f59e0b;--gold2:#fbbf24;--gold3:#fcd34d;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#475569;
+  --tier-s:#f97316;--tier-a:#a855f7;--tier-b:#3b82f6;
+}
+/* ── LIGHT (PINK/PURPLE) MODE ── */
+body.light{
+  --bg:#fef0fb;--bg2:#fff5fd;--bg3:#fce4f8;--bg4:#f5c8f0;
+  --border:rgba(168,85,247,0.18);--border2:rgba(168,85,247,0.35);
+  --accent:#9333ea;--accent2:#a855f7;
+  --gold:#92400e;--gold2:#7c2d12;--gold3:#6b21a8;
+  --text:#3b0764;--text2:#581c87;--text3:#7e22ce;
+  --tier-s:#be185d;--tier-a:#7c3aed;--tier-b:#1d4ed8;
+}
+body.light .comp-title{color:#3b0764;}
+body.light .topbar{background:linear-gradient(135deg,#f5c8f0,#e9d5ff);}
+body.light .logo-ontos{color:#9333ea;}
+body.light .sidebar{background:linear-gradient(180deg,#fdf4ff,#f5e8ff);}
+body.light .panel{background:#fff5fd;border-color:rgba(168,85,247,0.18);}
+body.light .ph{background:linear-gradient(90deg,rgba(233,213,255,0.5),transparent);}
+body.light .hex{background:#f5c8f0;}
+body.light .hex:hover{background:rgba(147,51,234,0.08);}
+body.light .tt{background:#fff5fd;}
+body.light .modal{background:#fff5fd;}
+/* ── COLOR PANEL ── */
+.cpanel{position:fixed;bottom:58px;left:14px;z-index:101;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;width:240px;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;}
+.cpanel.on{display:block;}
+.cpanel-head{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.cpanel-reset{font-size:9px;color:var(--accent2);cursor:pointer;font-weight:400;}
+.cpanel-reset:hover{text-decoration:underline;}
+.cpanel-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.cpanel-lbl{font-size:10px;color:var(--text2);}
+.cpanel input[type=color]{width:28px;height:22px;border:1px solid var(--border2);border-radius:3px;background:none;cursor:pointer;padding:0;}
+.cpanel-section{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;border-top:1px solid var(--border);padding-top:6px;}
+.cpanel-presets{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;}
+.cpanel-preset{font-size:9px;padding:2px 7px;border-radius:3px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;}
+.cpanel-preset:hover{border-color:var(--accent);color:var(--text);}
+/* ── LIGHT (PINK) MODE ── */
+body.light{
+  --bg:#fdf0f8;--bg2:#fff5fb;--bg3:#fce7f6;--bg4:#f5d0ee;
+  --border:rgba(168,85,247,0.15);--border2:rgba(168,85,247,0.3);
+  --accent:#a855f7;--accent2:#c084fc;
+  --gold:#b45309;--gold2:#92400e;--gold3:#78350f;
+  --text:#3b0764;--text2:#6b21a8;--text3:#9333ea;
+  --tier-s:#be185d;--tier-a:#7c3aed;--tier-b:#2563eb;
+}
+/* theme button */
+.theme-btn{position:fixed;bottom:14px;left:14px;z-index:100;width:36px;height:36px;border-radius:50%;border:2px solid var(--border2);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background .2s,border-color .2s;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.theme-btn:hover{border-color:var(--accent);}
+
+/* ── LAYOUT TOGGLE ── */
+.layout-toggle{position:fixed;top:44px;right:8px;z-index:100;font-size:9px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.5px;color:var(--text3);cursor:pointer;padding:2px 5px;border-radius:3px;border:1px solid var(--border);background:var(--bg2);transition:color .15s,border-color .15s;user-select:none;}
+.layout-toggle:hover{color:var(--accent2);border-color:var(--accent);}
+
+/* ── MOBILE LAYOUT ── */
+body.mobile .sidebar{display:none;}
+body.mobile .body{flex-direction:column;}
+body.mobile .content{padding:8px;}
+body.mobile .three-col{display:flex;flex-direction:column;gap:8px;}
+body.mobile .left-inner{display:flex;flex-direction:column;gap:8px;}
+body.mobile .mid-col{gap:6px;}
+body.mobile .car-syn-row{grid-template-columns:1fr 1fr;gap:6px;}
+body.mobile .champ-row{gap:4px;}
+body.mobile .ci{width:40px;height:40px;}
+body.mobile .cn{max-width:42px;}
+body.mobile .hex{width:36px;height:36px;}
+body.mobile .hex-row.off{margin-left:19px;}
+body.mobile .hex-board{padding:6px;}
+body.mobile .hex-notes{display:none;}
+body.mobile .hex-hint{display:none;}
+body.mobile .comp-title{font-size:18px;}
+
+/* mobile: sidebar becomes a top dropdown nav */
+body.mobile .mobile-nav{display:block;}
+.mobile-nav{display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:4px 8px;}
+.mobile-nav select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;padding:5px 8px;outline:none;cursor:pointer;}
+body.mobile .sidebar-desktop{display:none;}
+body.mobile .body{flex-direction:column;}
+
+/* topbar compact on mobile */
+body.mobile .topbar{padding:0 10px;}
+body.mobile .logo{font-size:15px;}
+body.mobile .btn-import{padding:4px 8px;font-size:11px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:11px;}
+
+/* ─── APP SHELL ─── */
+.app{display:flex;flex-direction:column;min-height:100vh;}
+
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);height:40px;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;position:sticky;top:0;z-index:20;}
+.logo{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;}
+.logo-tft{color:var(--text3);}
+.logo-ontos{color:var(--gold2);}
+.logo-sub{font-size:9px;color:var(--text3);}
+.topbar-space{flex:1;}
+.btn-import{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;cursor:pointer;}
+.btn-import:hover{background:#2563eb;}
+
+.body{display:flex;flex:1;align-items:flex-start;}
+
+/* ─── SIDEBAR ─── */
+.sidebar{width:180px;min-width:180px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:40px;height:calc(100vh - 40px);overflow-y:auto;}
+.sb-head{padding:8px 10px 4px;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--text3);text-transform:uppercase;}
+.sb-item{display:flex;align-items:center;gap:7px;padding:6px 8px;cursor:pointer;border-left:2px solid transparent;position:relative;}
+.sb-item:hover{background:var(--bg3);}
+.sb-item.active{background:var(--bg3);border-left-color:var(--accent);}
+.sb-thumb{width:28px;height:28px;border-radius:4px;object-fit:cover;border:1px solid var(--border2);flex-shrink:0;background:var(--bg4);}
+.sb-info{flex:1;min-width:0;}
+.sb-name{font-size:10px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-meta{font-size:9px;color:var(--text3);}
+.sb-del{display:none;position:absolute;right:5px;font-size:10px;color:var(--text3);cursor:pointer;padding:2px 4px;border-radius:3px;}
+.sb-del:hover{background:rgba(239,68,68,.2);color:#f87171;}
+.sb-item:hover .sb-del{display:block;}
+.sb-empty{padding:16px 10px;font-size:10px;color:var(--text3);text-align:center;line-height:1.7;}
+/* ─── HOME BUTTON ─── */
+.sb-home{display:flex;align-items:center;justify-content:center;padding:8px 10px 6px;cursor:pointer;border-bottom:1px solid var(--border);}
+.sb-home-btn{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:5px;background:transparent;border:1px solid transparent;color:var(--text2);font-size:10px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.5px;cursor:pointer;transition:all .15s;width:100%;}
+.sb-home-btn:hover{background:var(--bg3);border-color:var(--border2);color:var(--text);}
+.sb-home-btn.active{background:rgba(147,51,234,0.12);border-color:var(--accent);color:var(--accent2);}
+/* ─── HOME PAGE ─── */
+.home-page{padding:2px 0;}
+.home-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.home-sub{font-size:10px;color:var(--text3);margin-bottom:10px;}
+.home-section-h{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.home-search{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:6px 10px;outline:none;margin-bottom:8px;}
+.home-search:focus{border-color:var(--accent);}
+.champ-picker-grid{display:flex;flex-wrap:wrap;gap:4px;max-height:200px;overflow-y:auto;margin-bottom:10px;padding:4px;background:var(--bg3);border-radius:5px;border:1px solid var(--border);}
+.cpc{position:relative;cursor:pointer;border-radius:4px;border:2px solid transparent;transition:border-color .12s,transform .12s;}
+.cpc:hover{transform:scale(1.05);}
+.cpc.sel{border-color:var(--accent);}
+.cpc img{width:36px;height:36px;border-radius:3px;display:block;}
+.cpc-cost{position:absolute;top:0;right:0;background:var(--bg);border-radius:0 3px 0 3px;font-size:7px;font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--gold2);padding:0 2px;line-height:1.4;}
+.cpc-name{font-size:7px;color:var(--text2);text-align:center;max-width:36px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.sel-champs{display:flex;flex-wrap:wrap;gap:4px;min-height:24px;margin-bottom:10px;}
+.sel-tag{display:flex;align-items:center;gap:4px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:4px;padding:2px 6px;font-size:10px;color:var(--accent2);}
+body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234,.3);color:var(--accent);}
+.sel-tag-x{cursor:pointer;color:var(--text3);font-size:10px;margin-left:2px;}
+.sel-tag-x:hover{color:#f87171;}
+.aug-search{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:6px 10px;outline:none;margin-bottom:6px;}
+.aug-search:focus{border-color:var(--accent);}
+.aug-typed{font-size:10px;color:var(--accent2);margin-bottom:8px;}
+.results-area{display:flex;flex-direction:column;gap:8px;}
+.result-card{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;cursor:pointer;transition:border-color .15s;}
+.result-card:hover{border-color:var(--accent2);}
+.result-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.result-thumb{width:28px;height:28px;border-radius:4px;object-fit:cover;border:1px solid var(--border2);}
+.result-name{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:var(--text);flex:1;}
+.result-score{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:var(--gold2);}
+.result-matches{display:flex;flex-wrap:wrap;gap:3px;}
+.match-tag{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(59,130,246,.15);color:var(--accent2);border:1px solid rgba(59,130,246,.2);}
+.match-tag.aug{background:rgba(234,179,8,.15);color:var(--gold2);border-color:rgba(234,179,8,.2);}
+.no-results{font-size:11px;color:var(--text3);text-align:center;padding:20px 0;}
+
+/* ─── MAIN CONTENT ─── */
+.content{flex:1;padding:10px 12px;}
+.welcome{text-align:center;padding:60px 20px;color:var(--text3);}
+.welcome h2{font-family:'Rajdhani',sans-serif;font-size:22px;color:var(--text2);margin-bottom:6px;}
+
+/* ─── COMP HEADER ─── */
+.comp-title{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:6px;}
+.comp-pills{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.pill{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;}
+.pill-S{background:rgba(249,115,22,.15);color:var(--tier-s);border:1px solid rgba(249,115,22,.3);}
+.pill-A{background:rgba(168,85,247,.15);color:var(--tier-a);border:1px solid rgba(168,85,247,.3);}
+.pill-B{background:rgba(59,130,246,.15);color:var(--tier-b);border:1px solid rgba(59,130,246,.3);}
+.pill-diff{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);font-weight:400;font-family:'Inter',sans-serif;font-size:10px;}
+.pill-link{background:rgba(96,165,250,.06);color:var(--accent2);border:1px solid rgba(96,165,250,.2);font-weight:400;font-family:'Inter',sans-serif;font-size:10px;text-decoration:none;}
+
+/* ─── 3-COLUMN LAYOUT ─── */
+.three-col{display:grid;grid-template-columns:625px 300px 1fr;gap:8px;align-items:start;}
+
+/* ─── PANEL ─── */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:7px;overflow:hidden;}
+.ph{padding:5px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.pt{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);}
+.pt-sub{font-size:9px;color:var(--text3);margin-left:4px;}
+.pb{padding:8px 10px;}
+
+/* ─── FINAL BOARD ─── */
+.champ-row{display:flex;gap:6px;flex-wrap:wrap;}
+.cc{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:default;}
+.ci-wrap{position:relative;}
+.ci{width:52px;height:52px;border-radius:6px;border:2px solid var(--border2);object-fit:cover;display:block;transition:border-color .15s,transform .15s;}
+.cc:hover .ci{border-color:var(--gold);transform:translateY(-2px);}
+.stars{position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);display:flex;gap:1px;line-height:1;}
+.star{color:var(--gold2);font-size:9px;text-shadow:0 0 3px rgba(251,191,36,.5);}
+.cn{font-size:8px;color:var(--text2);text-align:center;max-width:54px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.ct{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;}
+.cti{width:10px;height:10px;opacity:.8;}
+
+/* ─── LEFT INNER 2-COL (plans + carries) ─── */
+.left-inner{display:grid;grid-template-columns:1fr 200px;gap:8px;align-items:start;margin-top:8px;}
+
+/* ─── PHASE TABS ─── */
+.tabs{display:flex;gap:1px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.tab{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;padding:5px 11px;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:.3px;}
+.tab:hover{color:var(--text2);}
+.tab.on{color:var(--accent2);border-bottom-color:var(--accent);}
+.tp{display:none;}.tp.on{display:block;}
+
+/* ─── PLAN CONTENT ─── */
+.plan-traits{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px;}
+.ptb{display:flex;align-items:center;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-size:9px;color:var(--text2);}
+.ptb img{width:11px;height:11px;}
+.ptc{color:var(--gold);font-weight:600;}
+.plan-units{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;}
+.pu{display:flex;flex-direction:column;align-items:center;gap:1px;}
+.pu img{width:32px;height:32px;border-radius:4px;border:1px solid var(--border2);}
+.pu-name{font-size:7px;color:var(--text3);text-align:center;max-width:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.plan-tips{display:flex;flex-direction:column;gap:2px;margin-bottom:8px;}
+.ti{font-size:10px;color:var(--text2);padding-left:9px;position:relative;line-height:1.5;}
+.ti::before{content:'›';position:absolute;left:0;color:var(--accent2);font-weight:700;}
+
+/* ─── HEX BOARD ─── */
+.hex-board{display:inline-flex;flex-direction:column;gap:2px;padding:8px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);}
+.hex-row{display:flex;gap:2px;}
+.hex-row.off{margin-left:22px;}
+.hex{width:42px;height:42px;background:var(--bg4);border:1px dashed var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:14px;color:var(--text3);opacity:.55;transition:border-color .12s,background .12s,opacity .12s;}
+.hex:hover{border-color:var(--accent);background:rgba(59,130,246,.07);opacity:1;}
+.hex.filled{border:1px solid var(--gold);padding:0;overflow:hidden;opacity:1;cursor:default;}
+.hex.filled:hover{border-color:var(--gold2);}
+.hex.filled img{width:100%;height:100%;object-fit:cover;border-radius:4px;}
+.hlabel{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.8);font-size:6px;text-align:center;padding:1px;color:#fff;border-radius:0 0 3px 3px;}
+.hrem{position:absolute;top:1px;right:1px;width:11px;height:11px;background:rgba(239,68,68,.9);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:7px;cursor:pointer;color:#fff;z-index:2;}
+.hex.filled:hover .hrem{display:flex;}
+.hex-hint{font-size:8px;color:var(--text3);margin-top:3px;}
+.hex-notes{width:70%;margin-top:5px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Inter',sans-serif;font-size:10px;padding:4px 7px;resize:none;height:38px;outline:none;line-height:1.5;}
+.hex-notes:focus{border-color:var(--accent);}
+.hex-clear{margin-top:3px;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:3px;padding:2px 7px;font-size:9px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;}
+.hex-clear:hover{color:var(--text);border-color:var(--border2);}
+
+/* ─── CARRIES (right of tabs) ─── */
+.carries{display:flex;flex-direction:column;gap:7px;}
+.carry-row{display:flex;align-items:flex-start;gap:7px;}
+.carry-champ{display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;}
+.carry-champ img{width:36px;height:36px;border-radius:5px;border:1px solid var(--border2);object-fit:cover;}
+.carry-cname{font-size:7px;color:var(--text3);text-align:center;max-width:40px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.carry-items{display:flex;flex-direction:column;gap:3px;flex:1;}
+.citem{display:flex;align-items:center;gap:5px;padding:3px 6px;background:var(--bg3);border-radius:4px;border:1px solid var(--border);cursor:default;}
+.citem:hover{border-color:var(--border2);}
+.citem img.ci-img{width:22px;height:22px;border-radius:3px;flex-shrink:0;}
+.citem-name{font-size:10px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.citem-comps{display:flex;gap:2px;margin-top:1px;}
+.comp-icon{width:13px;height:13px;border-radius:2px;border:1px solid var(--border);}
+
+/* ─── MIDDLE COLUMN ─── */
+.mid-col{display:flex;flex-direction:column;gap:6px;}
+
+/* ─── INFO ─── */
+.info-p{font-size:10px;color:var(--text2);line-height:1.65;}
+.when-h{font-family:'Rajdhani',sans-serif;font-size:8px;font-weight:700;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin:6px 0 3px;}
+.when-i{font-size:10px;color:var(--text2);padding:3px 7px;background:var(--bg3);border-radius:3px;border-left:2px solid var(--accent);margin-bottom:2px;}
+
+/* ─── LEVELING ─── */
+.lvl-row{display:flex;flex-wrap:wrap;align-items:center;gap:3px;}
+.lvl-step{display:flex;flex-direction:column;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:4px 7px;min-width:44px;}
+.lvl-n{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:var(--gold2);line-height:1;}
+.lvl-s{font-size:8px;color:var(--text2);}
+.lvl-g{font-size:8px;color:var(--gold3);}
+.lvl-arr{color:var(--text3);font-size:11px;}
+.lvl-note{font-size:8px;color:var(--accent2);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:3px;padding:1px 5px;}
+.strat{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:5px 7px;margin-top:5px;}
+.strat-h{font-family:'Rajdhani',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-bottom:2px;}
+.strat-t{font-size:10px;color:var(--text2);}
+
+/* ─── AUGMENTS ─── */
+.aug-row{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
+.aug-lbl{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;width:36px;flex-shrink:0;}
+.aug-bronze .aug-lbl{color:#cd7f32;}
+.aug-silver .aug-lbl{color:#94a3b8;}
+.aug-gold   .aug-lbl{color:#eab308;}
+.aug-icons{display:flex;gap:4px;flex-wrap:wrap;}
+.aug-icon{width:32px;height:32px;border-radius:5px;border:1px solid var(--border2);overflow:hidden;background:var(--bg3);cursor:default;transition:transform .12s;}
+.aug-icon:hover{transform:scale(1.12);}
+.aug-icon img{width:100%;height:100%;object-fit:cover;}
+
+/* ─── CAROUSEL + SYNERGIES ROW ─── */
+.car-syn-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.car-row{display:flex;align-items:center;gap:3px;flex-wrap:wrap;}
+.car-item{width:28px;height:28px;border-radius:4px;overflow:hidden;border:1px solid var(--border2);background:var(--bg3);cursor:default;transition:transform .12s;}
+.car-item:hover{transform:scale(1.12);}
+.car-item img{width:100%;height:100%;object-fit:cover;}
+.car-arr{color:var(--text3);font-size:10px;}
+
+/* ─── SYNERGIES compact ─── */
+.syn-row{display:flex;flex-wrap:wrap;gap:3px;}
+.syn-wrap{position:relative;width:30px;height:30px;cursor:default;flex-shrink:0;}
+.syn-badge{width:30px;height:30px;object-fit:contain;}
+.syn-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);width:15px;height:15px;}
+.syn-cnt{position:absolute;bottom:0;right:0;background:var(--bg);border-radius:2px;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;color:var(--gold2);line-height:1;padding:0 2px;}
+
+/* ─── RIGHT COLUMN (tips) ─── */
+.tips-col{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;}
+.tips-h{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text2);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:5px;margin-bottom:7px;}
+.tip-i{font-size:11px;color:var(--text2);padding-left:9px;position:relative;line-height:1.6;margin-bottom:5px;}
+.tip-i::before{content:'›';position:absolute;left:0;color:var(--accent2);font-weight:700;}
+.tip-i:last-child{margin-bottom:0;}
+
+/* ─── TOOLTIP ─── */
+.tt{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:9px 11px;max-width:270px;z-index:9999;pointer-events:none;display:none;box-shadow:0 8px 24px rgba(0,0,0,.7);}
+.tt.on{display:block;}
+.tt-n{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.tt-img{width:28px;height:28px;border-radius:3px;float:right;margin:0 0 4px 7px;}
+.tt-levels{display:flex;flex-direction:column;gap:3px;clear:both;}
+.tt-lv{display:flex;align-items:flex-start;gap:5px;padding:3px 6px;border-radius:3px;background:var(--bg3);}
+.tt-lv.on{border:1px solid var(--gold);}
+.tt-badge{width:13px;height:13px;flex-shrink:0;margin-top:1px;}
+.tt-num{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;min-width:14px;flex-shrink:0;}
+.tt-tag{font-size:8px;color:var(--gold3);font-family:'Rajdhani',sans-serif;font-weight:700;white-space:nowrap;margin-top:2px;}
+
+/* ─── MODALS ─── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;}
+.overlay.on{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:16px;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--text);}
+.modal-x{background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;}
+
+/* Picker */
+#pickerModal{width:420px;max-width:95vw;max-height:78vh;overflow-y:auto;}
+.picker-search{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:5px 8px;margin-bottom:8px;outline:none;}
+.picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:5px;}
+.pc{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px;border-radius:5px;border:1px solid transparent;}
+.pc:hover{border-color:var(--gold);background:var(--bg3);}
+.pc img{width:40px;height:40px;border-radius:5px;border:1px solid var(--border);}
+.pc-n{font-size:8px;color:var(--text2);text-align:center;}
+
+/* Import */
+#importModal{width:500px;max-width:95vw;}
+.import-desc{font-size:10px;color:var(--text2);line-height:1.7;margin-bottom:10px;}
+.import-desc code{background:var(--bg3);border:1px solid var(--border2);border-radius:2px;padding:1px 4px;color:var(--accent2);font-size:9px;}
+.import-ta{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:'Inter',sans-serif;font-size:10px;padding:8px;min-height:120px;outline:none;resize:vertical;line-height:1.5;}
+.import-ta:focus{border-color:var(--accent);}
+.import-err{color:#f87171;font-size:10px;margin-top:4px;display:none;}
+.import-btns{display:flex;gap:6px;margin-top:8px;}
+.btn-ok{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:6px 14px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;cursor:pointer;}
+.btn-ok:hover{background:#2563eb;}
+.btn-cancel{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);border-radius:4px;padding:6px 10px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div><div class="logo"><span class="logo-tft">TFT</span><span class="logo-ontos">ontos</span></div><div class="logo-sub">Manon &amp; Seb</div></div>
+    <div class="topbar-space"></div>
+    <span id="syncStatus" style="font-size:14px;cursor:default;margin-right:6px;" title="Cloud sync">☁️</span>
+    <button class="btn-import" onclick="openImport()">+ Import Comp</button>
+  </div>
+
+  <!-- Mobile nav (visible only in mobile mode) -->
+  <div class="mobile-nav" id="mobileNav">
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button onclick="showHome()" style="flex-shrink:0;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text2);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;padding:5px 8px;cursor:pointer;">🏠</button>
+      <select id="mobileSelect" onchange="onMobileNav(this.value)" style="flex:1;">
+        <option value="">— Select comp —</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="sidebar sidebar-desktop" id="sidebar">
+      <div class="sb-home"><button class="sb-home-btn" id="homeBtn" onclick="showHome()">🏠 Scout Opener</button></div>
+      <div class="sb-head">Saved Comps</div>
+      <div id="compList"><div class="sb-empty" id="emptyMsg">No comps yet.<br>Click <b>Import Comp</b><br>to get started.</div></div>
+    </div>
+    <div class="content">
+      <div class="welcome" id="welcome"><h2>Welcome to TFTontos 👋</h2><p style="font-size:11px;color:var(--text3);margin-top:6px;">Paste a Mobalytics URL in the chat to get a JSON, then Import Comp.</p></div>
+      <div id="cv" style="display:none;"></div>
+      <div id="homePage" style="display:none;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Tooltip -->
+<div class="tt" id="tt">
+  <div class="tt-n" id="tt-n"></div>
+  <img class="tt-img" id="tt-img" src="" alt="" onerror="this.style.display='none'"/>
+  <div class="tt-levels" id="tt-lv"></div>
+</div>
+
+<!-- Picker overlay -->
+<div class="overlay" id="pickerOverlay">
+  <div class="modal" id="pickerModal">
+    <div class="modal-head"><div class="modal-title">Place Champion</div><button class="modal-x" onclick="closePicker()">✕</button></div>
+    <input class="picker-search" id="pickerSearch" placeholder="Search…" oninput="filterPicker()"/>
+    <div class="picker-grid" id="pickerGrid"></div>
+  </div>
+</div>
+
+<!-- Import overlay -->
+<div class="overlay" id="importOverlay">
+  <div class="modal" id="importModal">
+    <div class="modal-head"><div class="modal-title">Import Comp</div><button class="modal-x" onclick="closeImport()">✕</button></div>
+    <div class="import-desc">Send a Mobalytics URL to Claude and ask for the TFTontos JSON. Paste it below.</div>
+    <textarea class="import-ta" id="importTA" placeholder='{"title":"Comp Name",...}'></textarea>
+    <div class="import-err" id="importErr"></div>
+    <div class="import-btns">
+      <button class="btn-ok" onclick="doImport()">Import</button>
+      <button class="btn-cancel" onclick="closeImport()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TRAIT DB (Set 17 — verified) ─────────────────────────────────────────────
+// ── LOOKUP DATA (loaded from GitHub CSV) ─────────────────────────────────────
+let TRAITS = {};
+let AUGMENT_LOOKUP = {};
+const BADGES = ['BRONZE','SILVER','GOLD','ORANGE'];
+
+const CSV_URL = 'https://raw.githubusercontent.com/01sebakan/tft-assets/main/Augments%20and%20Synergies.csv';
+
+async function loadLookup() {
+  try {
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+    let mode = null;
+    for (const line of lines) {
+      if (line.includes('Augments (number')) { mode = 'augments'; continue; }
+      if (line.includes('Synergies (name'))  { mode = 'synergies'; continue; }
+      if (!mode) continue;
+      const raw = (line.startsWith('"') && line.endsWith('"')) ? line.slice(1, -1) : line;
+      const cols = raw.split('|');
+      if (mode === 'augments') {
+        // cols: [number, name, tier, slug, description]
+        if (cols.length < 5) continue;
+        const slug = cols[3].trim();
+        const name = cols[1].trim();
+        const desc = cols[4].trim();
+        if (slug) AUGMENT_LOOKUP[slug] = { name, desc };
+      } else if (mode === 'synergies') {
+        // cols: [name, slug, effect, units1, bonus1, units2, bonus2, ...]
+        if (cols.length < 2) continue;
+        const name = cols[0].trim();
+        const slug = cols[1].trim();
+        const effect = (cols[2] || '').trim();
+        const levels = [];
+        const effects = {};
+        for (let i = 3; i < cols.length - 1; i += 2) {
+          const units = (cols[i] || '').trim();
+          const bonus = (cols[i + 1] || '').trim();
+          if (units !== '') {
+            const n = parseInt(units);
+            if (!isNaN(n)) { levels.push(n); effects[n] = bonus; }
+          }
+        }
+        if (slug) TRAITS[slug] = { innate: effect, levels, effects };
+      }
+    }
+  } catch(e) { console.warn('Could not load lookup CSV:', e); }
+}
+
+// ── ASSET HOST ────────────────────────────────────────────────────────────────
+// Images are served from a GitHub repo that doesn't block hotlinking.
+// After running download_tft_assets.py and pushing, set this to your repo:
+//   https://raw.githubusercontent.com/YOUR_USERNAME/tft-assets/main
+// Until then it falls back to Mobalytics (works locally, blocked on GitHub Pages).
+const GITHUB_ASSETS = 'https://raw.githubusercontent.com/01sebakan/tft-assets/main';
+const _USING_GH = GITHUB_ASSETS !== 'REPLACE_WITH_YOUR_GITHUB_ASSETS_URL';
+
+// These keep all existing URL-building code working unchanged:
+const CDN   = _USING_GH ? GITHUB_ASSETS + '/_mob' : 'https://cdn.mobalytics.gg/assets/tft/images';
+const ICONS = 'https://cdn.mobalytics.gg/assets/common/icons'; // SVG icons — not blocked
+
+// Champion/item image helpers — resolve from GitHub assets when available
+// Convert github.com/user/repo/blob/... URLs to raw.githubusercontent.com so <img> tags load
+function toRawImg(url){
+  if(!url) return '';
+  return url
+    .replace('https://github.com/','https://raw.githubusercontent.com/')
+    .replace(/\/blob\//,'/')
+    .replace(/[?#].*$/,'');
+}
+
+function champUrl(slug){ return _USING_GH ? `${GITHUB_ASSETS}/champions/${slug}.png` : `${CDN}/champions/icons/set17/${slug}.png?v=5`; }
+function itemUrl(slug){  return _USING_GH ? `${GITHUB_ASSETS}/items/${slug}.png`     : `${CDN}/game-items/set17/${slug}.png?v=5`; }
+function badgeUrl(b){    return _USING_GH ? `${GITHUB_ASSETS}/badges/${b}.png`       : `${CDN}/synergies-badges/${b}.png`; }
+
+// ── CLOUD SYNC (JSONBin) ───────────────────────────────────────────────────────
+const JSONBIN_ID  = '69ea0ad9aaba8821972c96f1';
+const JSONBIN_KEY = '$2a$10$nUrvlLkcuFP8dc8bx3erBeS/iX3/Lv6Q6so.FCUcw7cVf3hRilB/a';
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+let _syncing = false;
+
+function setSyncStatus(s,msg){
+  const el=document.getElementById('syncStatus');
+  if(!el)return;
+  const icons={idle:'☁️',saving:'⏳',loading:'⏳',error:'⚠️',ok:'✅'};
+  el.textContent=icons[s]||'☁️'; el.title=msg||s;
+}
+async function cloudSave(){
+  if(_syncing)return; _syncing=true; setSyncStatus('saving','Saving…');
+  try{
+    await fetch(JSONBIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY,'X-Bin-Versioning':'false'},body:JSON.stringify({comps})});
+    setSyncStatus('ok','Saved ✓'); setTimeout(()=>setSyncStatus('idle'),2000);
+  }catch(e){setSyncStatus('error','Save failed');}
+  _syncing=false;
+}
+async function cloudLoad(){
+  setSyncStatus('loading','Loading…');
+  try{
+    const r=await fetch(JSONBIN_URL,{headers:{'X-Master-Key':JSONBIN_KEY}});
+    const j=await r.json();
+    if(j.record&&Array.isArray(j.record.comps)&&j.record.comps.length){
+      comps=j.record.comps;
+      comps.forEach(c=>{if(!c._boards)c._boards={early:{hexes:{},notes:''},mid:{hexes:{},notes:''},late:{hexes:{},notes:''}};});
+      try{localStorage.setItem('tft17',JSON.stringify(comps));}catch(e){}
+      renderSidebar();
+      if(comps.length){ai=0;renderComp(comps[0]);}
+      setSyncStatus('ok','Loaded ✓'); setTimeout(()=>setSyncStatus('idle'),2500);
+    }else{setSyncStatus('idle','No cloud data');}
+  }catch(e){setSyncStatus('error','Load failed');}
+}
+
+// ── COLOR PANEL ───────────────────────────────────────────────────────────────
+const COLOR_VARS=[
+  ['--bg','cp-bg'],['--bg2','cp-bg2'],['--bg3','cp-bg3'],['--bg4','cp-bg4'],
+  ['--text','cp-text'],['--text2','cp-text2'],['--text3','cp-text3'],
+  ['--accent','cp-accent'],['--accent2','cp-accent2'],['--gold2','cp-gold2'],
+  ['--tier-s','cp-tier-s'],['--tier-a','cp-tier-a'],['--tier-b','cp-tier-b'],
+];
+const PRESETS={
+  'Dark':{'--bg':'#0d1117','--bg2':'#161b27','--bg3':'#1c2333','--bg4':'#232d40','--text':'#e2e8f0','--text2':'#94a3b8','--text3':'#475569','--accent':'#3b82f6','--accent2':'#60a5fa','--gold2':'#fbbf24','--tier-s':'#f97316','--tier-a':'#a855f7','--tier-b':'#3b82f6'},
+  'Pink':{'--bg':'#fdf0f8','--bg2':'#fff5fb','--bg3':'#fce7f6','--bg4':'#f5d0ee','--text':'#3b0764','--text2':'#6b21a8','--text3':'#9333ea','--accent':'#a855f7','--accent2':'#c084fc','--gold2':'#92400e','--tier-s':'#be185d','--tier-a':'#7c3aed','--tier-b':'#2563eb'},
+  'Slate':{'--bg':'#0f172a','--bg2':'#1e293b','--bg3':'#334155','--bg4':'#475569','--text':'#f1f5f9','--text2':'#94a3b8','--text3':'#64748b','--accent':'#38bdf8','--accent2':'#7dd3fc','--gold2':'#fcd34d','--tier-s':'#f87171','--tier-a':'#c084fc','--tier-b':'#38bdf8'},
+  'Forest':{'--bg':'#0a130d','--bg2':'#111f15','--bg3':'#1a2e1e','--bg4':'#243d28','--text':'#d1fae5','--text2':'#6ee7b7','--text3':'#34d399','--accent':'#10b981','--accent2':'#34d399','--gold2':'#fbbf24','--tier-s':'#f97316','--tier-a':'#a855f7','--tier-b':'#10b981'},
+};
+function applyColor(v,val){document.documentElement.style.setProperty(v,val);saveColorPrefs();}
+function saveColorPrefs(){const p={};COLOR_VARS.forEach(([v])=>{const val=getComputedStyle(document.documentElement).getPropertyValue(v).trim();if(val)p[v]=val;});try{localStorage.setItem('tft17_colors',JSON.stringify(p));}catch(e){}}
+function loadColorPrefs(){try{const s=localStorage.getItem('tft17_colors');if(!s)return;const p=JSON.parse(s);Object.entries(p).forEach(([v,val])=>document.documentElement.style.setProperty(v,val));syncColorInputs();}catch(e){}}
+function toHex(raw){raw=(raw||'').trim();if(raw.startsWith('#')&&raw.length===7)return raw;if(raw.startsWith('#')&&raw.length===4)return'#'+raw[1]+raw[1]+raw[2]+raw[2]+raw[3]+raw[3];const m=raw.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);if(m)return'#'+[m[1],m[2],m[3]].map(n=>parseInt(n).toString(16).padStart(2,'0')).join('');return'#000000';}
+function syncColorInputs(){COLOR_VARS.forEach(([v,id])=>{const el=document.getElementById(id);if(!el)return;const raw=getComputedStyle(document.documentElement).getPropertyValue(v).trim();if(raw)el.value=toHex(raw);});}
+function applyPreset(name){const p=PRESETS[name];if(!p)return;Object.entries(p).forEach(([v,val])=>document.documentElement.style.setProperty(v,val));saveColorPrefs();syncColorInputs();}
+function resetColors(){applyPreset('Dark');}
+function toggleColorPanel(){const p=document.getElementById('colorPanel');p.classList.toggle('on');if(p.classList.contains('on')){buildPresetBtns();syncColorInputs();}}
+function buildPresetBtns(){const el=document.getElementById('presetBtns');if(!el||el.children.length)return;Object.keys(PRESETS).forEach(name=>{const b=document.createElement('button');b.className='cpanel-preset';b.textContent=name;b.onclick=()=>applyPreset(name);el.appendChild(b);});}
+
+// ── LAYOUT TOGGLE ─────────────────────────────────────────────────────────────
+let isMobile = false;
+function toggleLayout(){
+  isMobile = !isMobile;
+  document.body.classList.toggle('mobile', isMobile);
+  const btn = document.getElementById('layoutToggle');
+  btn.textContent = isMobile ? '🖥️ Desktop version' : '📱 Mobile version';
+  try{localStorage.setItem('tft17_layout', isMobile?'mobile':'desktop');}catch(e){}
+  renderMobileNav();
+}
+function loadLayoutPref(){
+  try{const v=localStorage.getItem('tft17_layout');if(v==='mobile'){isMobile=true;document.body.classList.add('mobile');document.getElementById('layoutToggle').textContent='🖥️ Desktop version';}}catch(e){}
+}
+function renderMobileNav(){
+  const sel=document.getElementById('mobileSelect');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Select comp —</option>';
+  comps.forEach((c,i)=>{
+    const opt=document.createElement('option');
+    opt.value=i; opt.textContent=`Tier ${c.tier||'?'} · ${c.title}`;
+    if(i===ai)opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+function onMobileNav(val){
+  if(val==='')return;
+  const i=parseInt(val);
+  if(!isNaN(i))showComp(i);
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let comps=[],ai=null,pPhase=null,pHex=null;
+
+function save(){try{localStorage.setItem('tft17',JSON.stringify(comps));}catch(e){}}
+function load(){try{const d=localStorage.getItem('tft17');if(d)comps=JSON.parse(d);}catch(e){comps=[];}}
+
+// ── IMPORT ─────────────────────────────────────────────────────────────────────
+function openImport(){document.getElementById('importOverlay').classList.add('on');document.getElementById('importTA').value='';document.getElementById('importErr').style.display='none';}
+function closeImport(){document.getElementById('importOverlay').classList.remove('on');}
+function doImport(){
+  const raw=document.getElementById('importTA').value.trim();
+  const err=document.getElementById('importErr');
+  err.style.display='none';
+  let d;
+  try{d=JSON.parse(raw);}catch(e){err.textContent='Invalid JSON.';err.style.display='block';return;}
+  if(!d.title){err.textContent='Missing title field.';err.style.display='block';return;}
+  d._boards={early:{hexes:{},notes:''},mid:{hexes:{},notes:''},late:{hexes:{},notes:''}};
+  comps.push(d);save();ai=comps.length-1;
+  renderSidebar();showComp(ai);closeImport();
+}
+
+// ── SIDEBAR ────────────────────────────────────────────────────────────────────
+function renderSidebar(){
+  const list=document.getElementById('compList');
+  document.getElementById('emptyMsg').style.display=comps.length?'none':'block';
+  list.querySelectorAll('.sb-item').forEach(e=>e.remove());
+  comps.forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className='sb-item'+(i===ai?' active':'');
+    el.innerHTML=`<img class="sb-thumb" src="${toRawImg(c.thumbImg)||''}" onerror="this.style.opacity=.3"><div class="sb-info"><div class="sb-name">${c.title}</div><div class="sb-meta">Tier ${c.tier} · ${c.difficulty||'?'}</div></div><div class="sb-del" onclick="delComp(event,${i})">✕</div>`;
+    el.addEventListener('click',()=>showComp(i));
+    list.appendChild(el);
+  });
+  renderMobileNav();
+}
+function delComp(e,i){
+  e.stopPropagation();comps.splice(i,1);save();
+  if(ai>=comps.length)ai=comps.length-1;
+  renderSidebar();
+  if(!comps.length){document.getElementById('cv').style.display='none';document.getElementById('welcome').style.display='block';}
+  else showComp(ai);
+}
+function showComp(i){saveNotes();hideHome();ai=i;renderSidebar();renderComp(comps[i]);}
+function saveNotes(){
+  if(ai===null||!comps[ai])return;
+  ['early','mid','late'].forEach(p=>{const t=document.getElementById('notes-'+p);if(t)comps[ai]._boards[p].notes=t.value;});
+  save();
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+function renderComp(d){
+  document.getElementById('welcome').style.display='none';
+  const cv=document.getElementById('cv');cv.style.display='block';
+  const tc='pill-'+(d.tier||'B');
+
+  // champs with stars
+  const champs=(d.champions||[]).map(c=>{
+    const s=c.stars?`<div class="stars">${'<span class="star">★</span>'.repeat(c.stars)}</div>`:'';
+    const img=champUrl(c.slug);
+    return `<div class="cc" data-tt="champ" data-name="${c.name}" data-img="${img}">
+      <div class="ci-wrap"><img class="ci" src="${img}" onerror="this.style.opacity=.4"/>${s}</div>
+      <div class="cn">${c.name}</div>
+      <div class="ct">${(c.traits||[]).map(t=>`<img class="cti" src="${ICONS}/tft-synergies-set17/24-${t}.svg?v=5" onerror="this.style.display='none'"/>`).join('')}</div>
+    </div>`;
+  }).join('');
+
+  // synergies compact
+  const syns=(d.synergies||[]).map(s=>`
+    <div class="syn-wrap" data-tt="trait" data-name="${s.name}" data-slug="${s.slug}" data-count="${s.count}" data-badge="${s.badge}">
+      <img class="syn-badge" src="${badgeUrl((s.badge||'BRONZE').toUpperCase())}" onerror="this.style.opacity=.3"/>
+      <img class="syn-icon" src="${ICONS}/tft-synergies-set17/24-${s.slug}.svg?v=5" onerror="this.style.opacity=.3"/>
+      <span class="syn-cnt">${s.count}</span>
+    </div>`).join('');
+
+  // carries (with stars on champ icon)
+  const carries=(d.carries||[]).map(c=>{
+    const cImg=champUrl(c.slug);
+    return `
+    <div class="carry-row">
+      <div class="carry-champ">
+        <div class="ci-wrap" style="display:inline-block;position:relative;">
+          <img src="${cImg}" style="width:36px;height:36px;border-radius:5px;border:1px solid var(--border2);display:block;" onerror="this.style.opacity=.4"/>
+          ${c.stars?`<div class="stars">${'<span class=\"star\">★</span>'.repeat(c.stars)}</div>`:''}
+        </div>
+        <div class="carry-cname">${c.name}</div>
+      </div>
+      <div class="carry-items">
+        ${(c.items||[]).map(it=>{
+          const iImg=itemUrl(it.slug);
+          return `
+          <div class="citem" data-tt="item" data-name="${it.name}" data-img="${iImg}">
+            <img class="ci-img" src="${iImg}" onerror="this.style.opacity=.4"/>
+            <div class="citem-name">${it.name}${(it.components||[]).length?`<div class="citem-comps">${it.components.map(x=>`<img class="comp-icon" src="${itemUrl(x)}" onerror="this.style.opacity=.3"/>`).join('')}</div>`:''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // augments — name+desc from CSV lookup, imgUrl from JSON only
+  const augs=['tier1','tier2','tier3'].map((t,i)=>`
+    <div class="aug-row aug-${['bronze','silver','gold'][i]}">
+      <div class="aug-lbl">${['Bronze','Silver','Gold'][i]}</div>
+      <div class="aug-icons">
+        ${(d.augments&&d.augments[t]||[]).map(a=>{
+          const lk = AUGMENT_LOOKUP[a.slug] || {};
+          const name    = lk.name || a.name || a.slug || '';
+          const desc    = lk.desc || a.desc || '';
+          const imgUrl  = a.imgUrl || `https://cdn.mobalytics.gg/assets/tft/images/hextech-augments/set17/${a.slug}.webp?v=5`;
+          return `<div class="aug-icon" data-tt="augment" data-name="${name}" data-img="${imgUrl}" data-desc="${desc.replace(/"/g,'&quot;')}">
+            <img src="${imgUrl}" onerror="this.style.opacity=.4"/>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+
+  // carousel
+  const car=(d.carousel||[]).map((slug,i)=>{
+    const iImg=itemUrl(slug);
+    return `<div class="car-item" data-tt="item" data-name="${slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}" data-img="${iImg}">
+      <img src="${iImg}" onerror="this.style.opacity=.4"/>
+    </div>
+    ${i<d.carousel.length-1?'<span class="car-arr">›</span>':''}`;
+  }).join('');
+
+  // levels
+  const lvls=(d.levels||[]).map((l,i)=>`
+    <div class="lvl-step"><div class="lvl-n">Lv${l.level}</div><div class="lvl-s">${l.stage}</div><div class="lvl-g">${l.gold}+g</div></div>
+    ${l.note?`<div class="lvl-note">${l.note}</div>`:''}
+    ${i<d.levels.length-1?'<span class="lvl-arr">›</span>':''}`).join('');
+
+  cv.innerHTML=`
+    <div style="margin-bottom:6px;">
+      <div class="comp-title">${d.title}</div>
+      <div class="comp-pills">
+        <span class="pill ${tc}">Tier ${d.tier||'?'}</span>
+        ${d.difficulty?`<span class="pill pill-diff">${d.difficulty}</span>`:''}
+        ${d.sourceUrl?`<a class="pill pill-link" href="${d.sourceUrl}" target="_blank">↗ Mobalytics</a>`:''}
+      </div>
+    </div>
+
+    <div class="three-col">
+
+      <!-- LEFT -->
+      <div>
+        <div class="panel">
+          <div class="ph"><span class="pt">Final Board</span><span class="pt-sub">${(d.champions||[]).length} units · ${d.howText||''}</span></div>
+          <div class="pb"><div class="champ-row">${champs}</div></div>
+        </div>
+
+        <div class="left-inner">
+          <!-- plans + hex -->
+          <div>
+            <div class="tabs">
+              <div class="tab on" onclick="switchTab('early',this)">Early Game</div>
+              <div class="tab" onclick="switchTab('mid',this)">Mid Game</div>
+              <div class="tab" onclick="switchTab('late',this)">Late Game</div>
+            </div>
+            <div class="tp on" id="tp-early">${planHTML(d.earlyPlan)}${hexHTML('early',d)}</div>
+            <div class="tp" id="tp-mid">${planHTML(d.midPlan)}${hexHTML('mid',d)}</div>
+            <div class="tp" id="tp-late">${lateHTML(d)}${hexHTML('late',d)}</div>
+          </div>
+          <!-- carries -->
+          <div class="panel">
+            <div class="ph"><span class="pt">Carry Items</span></div>
+            <div class="pb"><div class="carries">${carries||'<span style="color:var(--text3);font-size:10px;">No carry data</span>'}</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE -->
+      <div class="mid-col">
+        <div class="panel">
+          <div class="ph"><span class="pt">General Info &amp; When to Play</span></div>
+          <div class="pb">
+            <div class="info-p">${d.generalInfo||''}</div>
+            ${(d.whenItems||[]).length?`<div class="when-h">When to play</div>${d.whenItems.map(w=>`<div class="when-i">${w}</div>`).join('')}`:''}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><span class="pt">Leveling Guide</span></div>
+          <div class="pb">
+            <div class="lvl-row">${lvls}</div>
+            ${d.howText?`<div class="strat"><div class="strat-h">Strategy</div><div class="strat-t">${d.howText}</div></div>`:''}
+          </div>
+        </div>
+        <div class="car-syn-row">
+          <div class="panel">
+            <div class="ph"><span class="pt">Carousel</span></div>
+            <div class="pb"><div class="car-row">${car||'—'}</div></div>
+          </div>
+          <div class="panel">
+            <div class="ph"><span class="pt">Synergies</span></div>
+            <div class="pb"><div class="syn-row">${syns}</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Augments + Tips -->
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div class="panel">
+          <div class="ph"><span class="pt">Recommended Augments</span></div>
+          <div class="pb">${augs}</div>
+        </div>
+        ${(d.tips||[]).length?`<div class="tips-col"><div class="tips-h">Additional Tips</div>${d.tips.map(t=>`<div class="tip-i">${t}</div>`).join('')}</div>`:''}
+      </div>
+
+    </div>`;
+
+  attachTT();
+  ['early','mid','late'].forEach(p=>initBoard(p,d));
+}
+
+function planHTML(plan){
+  if(!plan)return'';
+  return`${(plan.traits||[]).length?`<div class="plan-traits">${plan.traits.map(t=>`<div class="ptb"><img src="${ICONS}/tft-synergies-set17/24-${t.slug}.svg?v=5" onerror="this.style.display='none'"/><span>${t.name||t.slug}</span><span class="ptc"> ${t.count}</span></div>`).join('')}</div>`:''}
+${(plan.units||[]).length?`<div class="plan-units">${plan.units.map(u=>`<div class="pu"><img src="${champUrl(u)}" onerror="this.style.opacity=.4"/><div class="pu-name">${u.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div></div>`).join('')}</div>`:''}
+${(plan.tips||[]).length?`<div class="plan-tips">${plan.tips.map(t=>`<div class="ti">${t}</div>`).join('')}</div>`:''}`;
+}
+
+function lateHTML(d){
+  const syns=(d.synergies||[]).map(s=>`<div class="ptb"><img src="${ICONS}/tft-synergies-set17/24-${s.slug}.svg?v=5" onerror="this.style.display='none'"/><span>${s.name}</span><span class="ptc"> ${s.count}</span></div>`).join('');
+  const units=(d.champions||[]).map(c=>`<div class="pu"><img src="${champUrl(c.slug)}" onerror="this.style.opacity=.4"/><div class="pu-name">${c.name}</div></div>`).join('');
+  return`${syns?`<div class="plan-traits">${syns}</div>`:''}${units?`<div class="plan-units">${units}</div>`:''}`;
+}
+
+function hexHTML(phase,d){
+  const notes=d._boards&&d._boards[phase]?d._boards[phase].notes:'';
+  return`<div id="hb-${phase}" class="hex-board"></div>
+<div class="hex-hint">Click to place · hover to remove</div>
+<textarea class="hex-notes" id="notes-${phase}" placeholder="${phase} notes…">${notes}</textarea>
+<button class="hex-clear" onclick="clearBoard('${phase}')">Clear</button>`;
+}
+
+function switchTab(phase,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('tp-'+phase).classList.add('on');
+}
+
+// ── HEX ───────────────────────────────────────────────────────────────────────
+function initBoard(phase,d){
+  const b=document.getElementById('hb-'+phase);
+  if(!b)return;b.innerHTML='';
+  const rows=[{n:7,off:false},{n:7,off:true},{n:7,off:false},{n:7,off:true}];
+  let idx=0;
+  rows.forEach(r=>{
+    const row=document.createElement('div');
+    row.className='hex-row'+(r.off?' off':'');
+    for(let c=0;c<r.n;c++){
+      const i=idx++;const hex=document.createElement('div');hex.className='hex';hex.dataset.idx=i;
+      const saved=d._boards&&d._boards[phase]&&d._boards[phase].hexes[i];
+      if(saved){hex.className='hex filled';hex.innerHTML=`<img src="${champUrl(saved.slug||saved.name)}" alt="${saved.name}"/><div class="hlabel">${saved.name.split(' ')[0]}</div><div class="hrem" onclick="remHex(event,'${phase}',${i})">✕</div>`;}
+      else{hex.textContent='+';hex.addEventListener('click',()=>onHex(phase,i));}
+      row.appendChild(hex);
+    }
+    b.appendChild(row);
+  });
+}
+function onHex(phase,idx){
+  if(ai===null)return;
+  if(comps[ai]._boards[phase].hexes[idx])return;
+  pPhase=phase;pHex=idx;openPicker();
+}
+function getPool(phase){
+  const d=comps[ai];
+  if(phase==='late')return d.champions||[];
+  const plan=phase==='early'?d.earlyPlan:d.midPlan;
+  const units=(plan&&plan.units)||[];
+  if(!units.length)return d.champions||[];
+  const bySlug={};(d.champions||[]).forEach(c=>{bySlug[c.slug]=c;});
+  return units.map(u=>{
+    const slug=typeof u==='string'?u:u.slug;
+    return bySlug[slug]||{slug,name:slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()),traits:[]};
+  });
+}
+function openPicker(){
+  if(ai===null)return;
+  document.getElementById('pickerOverlay').classList.add('on');
+  document.getElementById('pickerSearch').value='';
+  renderPGrid(getPool(pPhase));
+}
+function renderPGrid(champs){
+  document.getElementById('pickerGrid').innerHTML=champs.map(c=>{
+    const img=champUrl(c.slug);
+    return `<div class="pc" onclick="placeChamp('${c.slug}','${c.name.replace(/'/g,"\\'")}','${img}')">
+      <img src="${img}" onerror="this.style.opacity=.4"/>
+      <div class="pc-n">${c.name}</div>
+    </div>`;
+  }).join('');
+}
+function filterPicker(){
+  if(ai===null)return;
+  const q=document.getElementById('pickerSearch').value.toLowerCase();
+  renderPGrid(getPool(pPhase).filter(c=>c.name.toLowerCase().includes(q)));
+}
+function closePicker(){document.getElementById('pickerOverlay').classList.remove('on');pPhase=null;pHex=null;}
+function placeChamp(slug,name,imgUrl){
+  if(!pPhase||pHex===null)return;
+  comps[ai]._boards[pPhase].hexes[pHex]={slug,name,imgUrl};save();
+  const b=document.getElementById('hb-'+pPhase);const ph=pPhase,i=pHex;
+  b.querySelectorAll('.hex').forEach(h=>{
+    if(parseInt(h.dataset.idx)===i){h.className='hex filled';h.innerHTML=`<img src="${imgUrl}" alt="${name}"/><div class="hlabel">${name.split(' ')[0]}</div><div class="hrem" onclick="remHex(event,'${ph}',${i})">✕</div>`;}
+  });
+  closePicker();
+}
+function remHex(e,phase,idx){
+  e.stopPropagation();delete comps[ai]._boards[phase].hexes[idx];save();
+  const b=document.getElementById('hb-'+phase);
+  b.querySelectorAll('.hex').forEach(h=>{
+    if(parseInt(h.dataset.idx)===idx){h.className='hex';h.textContent='+';h.onclick=()=>onHex(phase,idx);}
+  });
+}
+function clearBoard(phase){
+  if(ai===null)return;comps[ai]._boards[phase].hexes={};save();initBoard(phase,comps[ai]);
+}
+
+// ── TOOLTIPS ──────────────────────────────────────────────────────────────────
+function attachTT(){
+  const tt=document.getElementById('tt');
+  document.querySelectorAll('[data-tt]').forEach(el=>{
+    el.addEventListener('mouseenter',e=>{
+      const type=el.dataset.tt,name=el.dataset.name||'',img=el.dataset.img||'';
+      document.getElementById('tt-n').textContent=name;
+      const ti=document.getElementById('tt-img');ti.src=img;ti.style.display=img?'block':'none';
+      let html='';
+      if(type==='trait'){
+        const slug=el.dataset.slug||'',count=parseInt(el.dataset.count||0);
+        const info=TRAITS[slug];
+        if(info){
+          const effects=info.effects||{};
+          const activeN=info.levels&&info.levels.filter(n=>count>=n).pop();
+          if(info.innate)html+=`<div style="font-size:9px;color:var(--text2);margin-bottom:5px;line-height:1.5;border-bottom:1px solid var(--border);padding-bottom:4px;">${info.innate}</div>`;
+          if(info.levels&&info.levels.length){html+=info.levels.map((n,i)=>{
+            const isCurr=n===activeN,isOn=count>=n,bn=BADGES[Math.min(i,BADGES.length-1)];
+            return`<div class="tt-lv${isCurr?' on':''}">
+              <img class="tt-badge" src="${badgeUrl(bn)}" onerror="this.style.opacity=.3"/>
+              <span class="tt-num" style="color:${isOn?'var(--gold2)':'var(--text3)'}">${n}</span>
+              <div style="flex:1;font-size:9px;color:${isOn?'var(--text)':'var(--text3)'};line-height:1.4;">${effects[n]||''}</div>
+              ${isCurr?'<span class="tt-tag">ACTIVE</span>':''}
+            </div>`;
+          }).join('');}
+        }
+      }
+      if(type==='augment'){const desc=el.dataset.desc||'';if(desc)html=`<div style="font-size:10px;color:var(--text2);line-height:1.6;">${desc}</div>`;}
+      if(type==='item'){/* name shown in header */}
+      document.getElementById('tt-lv').innerHTML=html;
+      tt.classList.add('on');posTT(e);
+    });
+    el.addEventListener('mousemove',posTT);
+    el.addEventListener('mouseleave',()=>document.getElementById('tt').classList.remove('on'));
+  });
+}
+function posTT(e){
+  const t=document.getElementById('tt');
+  let x=e.clientX+14,y=e.clientY-8;
+  if(x+280>window.innerWidth)x=e.clientX-288;
+  if(y+220>window.innerHeight)y=e.clientY-220;
+  t.style.left=x+'px';t.style.top=y+'px';
+}
+
+// ── SET 17 FULL ROSTER ────────────────────────────────────────────────────────
+// All champions with cost, slug for image URL, display name
+const ROSTER = [
+  // 1-costs
+  {c:1,s:'aatrox',n:'Aatrox'},{c:1,s:'briar',n:'Briar'},{c:1,s:'caitlyn',n:'Caitlyn'},
+  {c:1,s:'chogath',n:"Cho'Gath"},{c:1,s:'ezreal',n:'Ezreal'},{c:1,s:'jax',n:'Jax'},
+  {c:1,s:'leona',n:'Leona'},{c:1,s:'lissandra',n:'Lissandra'},{c:1,s:'nasus',n:'Nasus'},
+  {c:1,s:'poppy',n:'Poppy'},{c:1,s:'reksai',n:"Rek'Sai"},{c:1,s:'riven',n:'Riven'},
+  {c:1,s:'talon',n:'Talon'},{c:1,s:'teemo',n:'Teemo'},{c:1,s:'twistedfate',n:'Twisted Fate'},
+  // 2-costs
+  {c:2,s:'akali',n:'Akali'},{c:2,s:'corki',n:'Corki'},{c:2,s:'gwen',n:'Gwen'},
+  {c:2,s:'gragas',n:'Gragas'},{c:2,s:'illaoi',n:'Illaoi'},{c:2,s:'jinx',n:'Jinx'},
+  {c:2,s:'meepsie',n:'Meepsie'},{c:2,s:'mordekaiser',n:'Mordekaiser'},{c:2,s:'milio',n:'Milio'},
+  {c:2,s:'pyke',n:'Pyke'},{c:2,s:'zoe',n:'Zoe'},
+  // 3-costs
+  {c:3,s:'aurora',n:'Aurora'},{c:3,s:'diana',n:'Diana'},{c:3,s:'fiora',n:'Fiora'},
+  {c:3,s:'morgana',n:'Morgana'},{c:3,s:'ornn',n:'Ornn'},{c:3,s:'rhaast',n:'Rhaast'},
+  {c:3,s:'samira',n:'Samira'},{c:3,s:'viktor',n:'Viktor'},{c:3,s:'vex',n:'Vex'},
+  // 4-costs
+  {c:4,s:'graves',n:'Graves'},{c:4,s:'karma',n:'Karma'},{c:4,s:'kindred',n:'Kindred'},
+  {c:4,s:'leblanc',n:'LeBlanc'},{c:4,s:'masteryi',n:'Master Yi'},{c:4,s:'nami',n:'Nami'},
+  {c:4,s:'galio',n:'The Mighty Mech'},{c:4,s:'urgot',n:'Urgot'},
+  // 5-costs
+  {c:5,s:'aurelionsol',n:'Aurelion Sol'},{c:5,s:'bard',n:'Bard'},{c:5,s:'blitzcrank',n:'Blitzcrank'},
+  {c:5,s:'jhin',n:'Jhin'},{c:5,s:'maokai',n:'Maokai'},{c:5,s:'missfortune',n:'Miss Fortune'},
+  {c:5,s:'sona',n:'Sona'},
+];
+const COST_COLORS={1:'#94a3b8',2:'#4ade80',3:'#60a5fa',4:'#c084fc',5:'#fbbf24'};
+
+// ── HOME PAGE STATE ────────────────────────────────────────────────────────────
+let selectedChamps = new Set(); // slugs
+let augmentText = '';
+
+function showHome(){
+  saveNotes();
+  document.getElementById('homeBtn').classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('welcome').style.display='none';
+  document.getElementById('cv').style.display='none';
+  document.getElementById('homePage').style.display='block';
+  renderHome();
+}
+
+function hideHome(){
+  const hp = document.getElementById('homePage');
+  if(hp) hp.style.display='none';
+  document.getElementById('homeBtn').classList.remove('active');
+}
+
+function renderHome(){
+  const el = document.getElementById('homePage');
+  el.innerHTML = `
+    <div class="home-page">
+      <div class="home-title">🏠 Scout Your Opener</div>
+      <div class="home-sub">Select champions you have early + your augment to find matching comps</div>
+
+      <div class="home-section-h">Your Champions</div>
+      <input class="home-search" id="homeSearch" placeholder="Search champion name…" oninput="filterRoster()"/>
+      <div class="champ-picker-grid" id="rosterGrid"></div>
+      <div id="selChamps" class="sel-champs"></div>
+
+      <div class="home-section-h">Your Augment (optional)</div>
+      <input class="aug-search" id="augInput" placeholder="Type augment name…" oninput="onAugInput()" value="${augmentText}"/>
+      ${augmentText?`<div class="aug-typed">Searching for: <b>${augmentText}</b></div>`:''}
+
+      <div class="home-section-h">Matching Comps</div>
+      <div id="homeResults" class="results-area"></div>
+    </div>`;
+
+  renderRoster('');
+  renderSelChamps();
+  runMatching();
+}
+
+function filterRoster(){
+  const q = document.getElementById('homeSearch').value.toLowerCase();
+  renderRoster(q);
+}
+
+function renderRoster(q){
+  const grid = document.getElementById('rosterGrid');
+  if(!grid) return;
+  const filtered = q ? ROSTER.filter(ch=>ch.n.toLowerCase().includes(q)) : ROSTER;
+  grid.innerHTML = filtered.map(ch=>{
+    const sel = selectedChamps.has(ch.s);
+    const img = champUrl(ch.s);
+    return `<div class="cpc${sel?' sel':''}" onclick="toggleChamp('${ch.s}')" title="${ch.n}">
+      <img src="${img}" onerror="this.style.opacity=.3"/>
+      <div class="cpc-cost" style="color:${COST_COLORS[ch.c]||'#fff'}">${ch.c}</div>
+      <div class="cpc-name">${ch.n}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleChamp(slug){
+  if(selectedChamps.has(slug)) selectedChamps.delete(slug);
+  else selectedChamps.add(slug);
+  const q = document.getElementById('homeSearch')?.value||'';
+  renderRoster(q.toLowerCase());
+  renderSelChamps();
+  runMatching();
+}
+
+function renderSelChamps(){
+  const el = document.getElementById('selChamps');
+  if(!el) return;
+  if(!selectedChamps.size){ el.innerHTML='<span style="font-size:10px;color:var(--text3);">No champions selected yet</span>'; return; }
+  el.innerHTML=[...selectedChamps].map(s=>{
+    const ch = ROSTER.find(r=>r.s===s);
+    return `<div class="sel-tag"><img src="${champUrl(s)}" style="width:16px;height:16px;border-radius:2px;" onerror="this.style.opacity=.3"/>${ch?ch.n:s}<span class="sel-tag-x" onclick="toggleChamp('${s}')">✕</span></div>`;
+  }).join('');
+}
+
+function onAugInput(){
+  augmentText = document.getElementById('augInput').value;
+  runMatching();
+}
+
+function runMatching(){
+  const resultsEl = document.getElementById('homeResults');
+  if(!resultsEl) return;
+  if(!comps.length){
+    resultsEl.innerHTML='<div class="no-results">No comps saved yet. Import some comps first!</div>';
+    return;
+  }
+
+  const scored = comps.map((comp,idx)=>{
+    let score = 0;
+    const matchTags = [];
+    const myChamps = [...selectedChamps];
+
+    // Check early plan units
+    const earlyUnits = (comp.earlyPlan?.units||[]).map(u=>typeof u==='string'?u:u.slug);
+    const midUnits = (comp.midPlan?.units||[]).map(u=>typeof u==='string'?u:u.slug);
+    const allUnits = (comp.champions||[]).map(c=>c.slug);
+
+    // Count matches in early plan (most relevant)
+    const earlyMatches = myChamps.filter(s=>earlyUnits.includes(s));
+    if(earlyMatches.length){
+      score += earlyMatches.length * 3;
+      earlyMatches.forEach(s=>{
+        const ch = ROSTER.find(r=>r.s===s);
+        matchTags.push({label:(ch?.n||s)+' (early)', type:'champ'});
+      });
+    }
+
+    // Count matches in mid plan
+    const midMatches = myChamps.filter(s=>midUnits.includes(s) && !earlyUnits.includes(s));
+    if(midMatches.length){
+      score += midMatches.length * 2;
+      midMatches.forEach(s=>{
+        const ch = ROSTER.find(r=>r.s===s);
+        matchTags.push({label:(ch?.n||s)+' (mid)', type:'champ'});
+      });
+    }
+
+    // Count matches in final board
+    const lateMatches = myChamps.filter(s=>allUnits.includes(s) && !earlyUnits.includes(s) && !midUnits.includes(s));
+    if(lateMatches.length){
+      score += lateMatches.length * 1;
+      lateMatches.forEach(s=>{
+        const ch = ROSTER.find(r=>r.s===s);
+        matchTags.push({label:(ch?.n||s)+' (late)', type:'champ'});
+      });
+    }
+
+    // Augment match
+    if(augmentText.trim().length > 1){
+      const aug = augmentText.trim().toLowerCase();
+      const allAugs = [...(comp.augments?.tier1||[]),...(comp.augments?.tier2||[]),...(comp.augments?.tier3||[])];
+      const augMatch = allAugs.find(a=>a.name.toLowerCase().includes(aug));
+      if(augMatch){
+        score += 5;
+        matchTags.push({label:'Augment: '+augMatch.name, type:'aug'});
+      }
+    }
+
+    return {comp, idx, score, matchTags};
+  }).filter(r=>r.score>0).sort((a,b)=>b.score-a.score);
+
+  if(!scored.length){
+    if(!selectedChamps.size && !augmentText){
+      resultsEl.innerHTML='<div class="no-results">Select champions or type an augment above to see matches</div>';
+    } else {
+      resultsEl.innerHTML='<div class="no-results">No matching comps found — try different champions</div>';
+    }
+    return;
+  }
+
+  resultsEl.innerHTML = scored.map(r=>`
+    <div class="result-card" onclick="jumpToComp(${r.idx})">
+      <div class="result-head">
+        <img class="result-thumb" src="${toRawImg(r.comp.thumbImg||'')}" onerror="this.style.opacity=.3"/>
+        <div class="result-name">${r.comp.title}</div>
+        <div class="result-score">${r.matchTags.length} match${r.matchTags.length!==1?'es':''}</div>
+      </div>
+      <div class="result-matches">
+        ${r.matchTags.map(t=>`<span class="match-tag ${t.type==='aug'?'aug':''}">${t.label}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function jumpToComp(idx){
+  hideHome();
+  showComp(idx);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+load();renderSidebar();
+if(comps.length){ai=0;renderComp(comps[0]);}
+document.getElementById('pickerOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closePicker();});
+document.getElementById('importOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeImport();});
+window.addEventListener('beforeunload',saveNotes);
+
+// Load CSV lookup then re-render active comp so tooltips use fresh data
+loadLookup().then(()=>{ if(comps.length && ai !== null) renderComp(comps[ai]); });
+
+// ── INIT (save override for cloud sync) ──────────────────────────────────────
+const _origSave = save;
+function save(){
+  try{localStorage.setItem('tft17',JSON.stringify(comps));}catch(e){}
+  cloudSave();
+}
+
+loadColorPrefs();
+loadLayoutPref();
+cloudLoad();
+</script>
+
+<!-- 🎨 Color panel button -->
+<button class="theme-btn" onclick="toggleColorPanel()" id="themeBtn" title="Customize colors">🎨</button>
+
+<!-- Layout toggle -->
+<span class="layout-toggle" id="layoutToggle" onclick="toggleLayout()" title="Switch layout">📱 Mobile version</span>
+
+<!-- Color panel -->
+<div class="cpanel" id="colorPanel">
+  <div class="cpanel-head">Theme Colors <span class="cpanel-reset" onclick="resetColors()">Reset</span></div>
+  <div class="cpanel-presets" id="presetBtns"></div>
+  <div class="cpanel-section">Backgrounds</div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Main bg</span><input type="color" id="cp-bg" oninput="applyColor('--bg',this.value)"/></div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Panel bg</span><input type="color" id="cp-bg2" oninput="applyColor('--bg2',this.value)"/></div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Element bg</span><input type="color" id="cp-bg3" oninput="applyColor('--bg3',this.value)"/></div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Hover bg</span><input type="color" id="cp-bg4" oninput="applyColor('--bg4',this.value)"/></div>
+  <div class="cpanel-section">Text</div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Primary</span><input type="color" id="cp-text" oninput="applyColor('--text',this.value)"/></div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Secondary</span><input type="color" id="cp-text2" oninput="applyColor('--text2',this.value)"/></div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Muted</span><input type="color" id="cp-text3" oninput="applyColor('--text3',this.value)"/></div>
+  <div class="cpanel-section">Accents</div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Accent</span><input type="color" id="cp-accent" oninput="applyColor('--accent',this.value)"/></div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Accent light</span><input type="color" id="cp-accent2" oninput="applyColor('--accent2',this.value)"/></div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Gold</span><input type="color" id="cp-gold2" oninput="applyColor('--gold2',this.value)"/></div>
+  <div class="cpanel-section">Tier Labels</div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Tier S</span><input type="color" id="cp-tier-s" oninput="applyColor('--tier-s',this.value)"/></div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Tier A</span><input type="color" id="cp-tier-a" oninput="applyColor('--tier-a',this.value)"/></div>
+  <div class="cpanel-row"><span class="cpanel-lbl">Tier B</span><input type="color" id="cp-tier-b" oninput="applyColor('--tier-b',this.value)"/></div>
+</div>
+
+</body>
+</html>
