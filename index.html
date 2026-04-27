@@ -69,10 +69,6 @@ body.light{
 body.mobile .sidebar{display:none;}
 body.mobile .body{flex-direction:column;}
 body.mobile .content{padding:8px;}
-body.mobile .three-col{display:flex;flex-direction:column;gap:8px;}
-body.mobile .left-inner{display:flex;flex-direction:column;gap:8px;}
-body.mobile .mid-col{gap:6px;}
-body.mobile .car-syn-row{grid-template-columns:1fr 1fr;gap:6px;}
 body.mobile .champ-row{gap:4px;}
 body.mobile .ci{width:40px;height:40px;}
 body.mobile .cn{max-width:42px;}
@@ -81,14 +77,21 @@ body.mobile .hex-row.off{margin-left:19px;}
 body.mobile .hex-board{padding:6px;}
 body.mobile .hex-notes{display:none;}
 body.mobile .hex-hint{display:none;}
+body.mobile .hex-clear{display:none;}
 body.mobile .comp-title{font-size:18px;}
 
 /* mobile: sidebar becomes a top dropdown nav */
 body.mobile .mobile-nav{display:block;}
 .mobile-nav{display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:4px 8px;}
-.mobile-nav select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;padding:5px 8px;outline:none;cursor:pointer;}
 body.mobile .sidebar-desktop{display:none;}
-body.mobile .body{flex-direction:column;}
+
+/* mobile grid rows */
+.mob-layout{display:flex;flex-direction:column;gap:8px;}
+.mob-row{width:100%;}
+.mob-full{/* full width, nothing special */}
+.mob-half{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start;}
+.mob-left{min-width:0;}
+.mob-right{min-width:0;}
 
 /* topbar compact on mobile */
 body.mobile .topbar{padding:0 10px;}
@@ -560,6 +563,8 @@ function toggleLayout(){
   btn.textContent = isMobile ? '🖥️ Desktop version' : '📱 Mobile version';
   try{localStorage.setItem('tft17_layout', isMobile?'mobile':'desktop');}catch(e){}
   renderMobileNav();
+  // re-render active comp so the correct layout template is used
+  if(ai !== null && comps[ai]) renderComp(comps[ai]);
 }
 function loadLayoutPref(){
   try{const v=localStorage.getItem('tft17_layout');if(v==='mobile'){isMobile=true;document.body.classList.add('mobile');document.getElementById('layoutToggle').textContent='🖥️ Desktop version';}}catch(e){}
@@ -712,7 +717,7 @@ function renderComp(d){
     ${l.note?`<div class="lvl-note">${l.note}</div>`:''}
     ${i<d.levels.length-1?'<span class="lvl-arr">›</span>':''}`).join('');
 
-  cv.innerHTML=`
+  const header=`
     <div style="margin-bottom:6px;">
       <div class="comp-title">${d.title}</div>
       <div class="comp-pills">
@@ -720,75 +725,132 @@ function renderComp(d){
         ${d.difficulty?`<span class="pill pill-diff">${d.difficulty}</span>`:''}
         ${d.sourceUrl?`<a class="pill pill-link" href="${d.sourceUrl}" target="_blank">↗ Mobalytics</a>`:''}
       </div>
-    </div>
+    </div>`;
 
+  const tabsBlock=`
+    <div class="tabs">
+      <div class="tab on" onclick="switchTab('early',this)">Early Game</div>
+      <div class="tab" onclick="switchTab('mid',this)">Mid Game</div>
+      <div class="tab" onclick="switchTab('late',this)">Late Game</div>
+    </div>
+    <div class="tp on" id="tp-early">${planHTML(d.earlyPlan)}${hexHTML('early',d)}</div>
+    <div class="tp" id="tp-mid">${planHTML(d.midPlan)}${hexHTML('mid',d)}</div>
+    <div class="tp" id="tp-late">${lateHTML(d)}${hexHTML('late',d)}</div>`;
+
+  const finalBoardPanel=`
+    <div class="panel">
+      <div class="ph"><span class="pt">Final Board</span><span class="pt-sub">${(d.champions||[]).length} units · ${d.howText||''}</span></div>
+      <div class="pb"><div class="champ-row">${champs}</div></div>
+    </div>`;
+
+  const carriesPanel=`
+    <div class="panel">
+      <div class="ph"><span class="pt">Carry Items</span></div>
+      <div class="pb"><div class="carries">${carries||'<span style="color:var(--text3);font-size:10px;">No carry data</span>'}</div></div>
+    </div>`;
+
+  const infoPanel=`
+    <div class="panel">
+      <div class="ph"><span class="pt">General Info &amp; When to Play</span></div>
+      <div class="pb">
+        <div class="info-p">${d.generalInfo||''}</div>
+        ${(d.whenItems||[]).length?`<div class="when-h">When to play</div>${d.whenItems.map(w=>`<div class="when-i">${w}</div>`).join('')}`:''}
+      </div>
+    </div>`;
+
+  const levelingPanel=`
+    <div class="panel">
+      <div class="ph"><span class="pt">Leveling Guide</span></div>
+      <div class="pb">
+        <div class="lvl-row">${lvls}</div>
+        ${d.howText?`<div class="strat"><div class="strat-h">Strategy</div><div class="strat-t">${d.howText}</div></div>`:''}
+      </div>
+    </div>`;
+
+  const carouselPanel=`
+    <div class="panel">
+      <div class="ph"><span class="pt">Carousel</span></div>
+      <div class="pb"><div class="car-row">${car||'—'}</div></div>
+    </div>`;
+
+  const synergiesPanel=`
+    <div class="panel">
+      <div class="ph"><span class="pt">Synergies</span></div>
+      <div class="pb"><div class="syn-row">${syns}</div></div>
+    </div>`;
+
+  const augmentsPanel=`
+    <div class="panel">
+      <div class="ph"><span class="pt">Recommended Augments</span></div>
+      <div class="pb">${augs}</div>
+    </div>`;
+
+  const tipsPanel=(d.tips||[]).length?`<div class="tips-col"><div class="tips-h">Additional Tips</div>${d.tips.map(t=>`<div class="tip-i">${t}</div>`).join('')}</div>`:'';
+
+  if(isMobile){
+    cv.innerHTML=header+`
+      <div class="mob-layout">
+
+        <!-- L1: Final Board (full width) -->
+        <div class="mob-row mob-full">${finalBoardPanel}</div>
+
+        <!-- L2: Hexes left, Carry Items right -->
+        <div class="mob-row mob-half">
+          <div class="mob-left panel">
+            <div class="ph"><span class="pt">Board Planner</span></div>
+            <div class="pb">${tabsBlock}</div>
+          </div>
+          <div class="mob-right">${carriesPanel}</div>
+        </div>
+
+        <!-- L3: General Info left, Leveling right -->
+        <div class="mob-row mob-half">
+          <div class="mob-left">${infoPanel}</div>
+          <div class="mob-right">${levelingPanel}</div>
+        </div>
+
+        <!-- L4: Carousel + Synergies + Augments left, Tips right -->
+        <div class="mob-row mob-half">
+          <div class="mob-left" style="display:flex;flex-direction:column;gap:6px;">
+            ${carouselPanel}
+            ${synergiesPanel}
+            ${augmentsPanel}
+          </div>
+          <div class="mob-right">${tipsPanel}</div>
+        </div>
+
+      </div>`;
+  } else {
+    cv.innerHTML=header+`
     <div class="three-col">
 
       <!-- LEFT -->
       <div>
-        <div class="panel">
-          <div class="ph"><span class="pt">Final Board</span><span class="pt-sub">${(d.champions||[]).length} units · ${d.howText||''}</span></div>
-          <div class="pb"><div class="champ-row">${champs}</div></div>
-        </div>
-
+        ${finalBoardPanel}
         <div class="left-inner">
-          <!-- plans + hex -->
-          <div>
-            <div class="tabs">
-              <div class="tab on" onclick="switchTab('early',this)">Early Game</div>
-              <div class="tab" onclick="switchTab('mid',this)">Mid Game</div>
-              <div class="tab" onclick="switchTab('late',this)">Late Game</div>
-            </div>
-            <div class="tp on" id="tp-early">${planHTML(d.earlyPlan)}${hexHTML('early',d)}</div>
-            <div class="tp" id="tp-mid">${planHTML(d.midPlan)}${hexHTML('mid',d)}</div>
-            <div class="tp" id="tp-late">${lateHTML(d)}${hexHTML('late',d)}</div>
-          </div>
-          <!-- carries -->
-          <div class="panel">
-            <div class="ph"><span class="pt">Carry Items</span></div>
-            <div class="pb"><div class="carries">${carries||'<span style="color:var(--text3);font-size:10px;">No carry data</span>'}</div></div>
-          </div>
+          <div>${tabsBlock}</div>
+          ${carriesPanel}
         </div>
       </div>
 
       <!-- MIDDLE -->
       <div class="mid-col">
-        <div class="panel">
-          <div class="ph"><span class="pt">General Info &amp; When to Play</span></div>
-          <div class="pb">
-            <div class="info-p">${d.generalInfo||''}</div>
-            ${(d.whenItems||[]).length?`<div class="when-h">When to play</div>${d.whenItems.map(w=>`<div class="when-i">${w}</div>`).join('')}`:''}
-          </div>
-        </div>
-        <div class="panel">
-          <div class="ph"><span class="pt">Leveling Guide</span></div>
-          <div class="pb">
-            <div class="lvl-row">${lvls}</div>
-            ${d.howText?`<div class="strat"><div class="strat-h">Strategy</div><div class="strat-t">${d.howText}</div></div>`:''}
-          </div>
-        </div>
+        ${infoPanel}
+        ${levelingPanel}
         <div class="car-syn-row">
-          <div class="panel">
-            <div class="ph"><span class="pt">Carousel</span></div>
-            <div class="pb"><div class="car-row">${car||'—'}</div></div>
-          </div>
-          <div class="panel">
-            <div class="ph"><span class="pt">Synergies</span></div>
-            <div class="pb"><div class="syn-row">${syns}</div></div>
-          </div>
+          ${carouselPanel}
+          ${synergiesPanel}
         </div>
       </div>
 
       <!-- RIGHT: Augments + Tips -->
       <div style="display:flex;flex-direction:column;gap:6px;">
-        <div class="panel">
-          <div class="ph"><span class="pt">Recommended Augments</span></div>
-          <div class="pb">${augs}</div>
-        </div>
-        ${(d.tips||[]).length?`<div class="tips-col"><div class="tips-h">Additional Tips</div>${d.tips.map(t=>`<div class="tip-i">${t}</div>`).join('')}</div>`:''}
+        ${augmentsPanel}
+        ${tipsPanel}
       </div>
 
     </div>`;
+  }
 
   attachTT();
   ['early','mid','late'].forEach(p=>initBoard(p,d));
