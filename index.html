@@ -72,9 +72,12 @@ body.mobile .content{padding:8px;}
 body.mobile .champ-row{gap:4px;}
 body.mobile .ci{width:34px;height:34px;}
 body.mobile .cn{max-width:36px;}
-body.mobile .hex{width:34px;height:34px;}
-body.mobile .hex-row.off{margin-left:18px;}
-body.mobile .hex-board{padding:6px;}
+body.mobile .hex{width:30px;height:30px;}
+body.mobile .hex-row.off{margin-left:16px;}
+body.mobile .hex-board{padding:6px;display:inline-flex;flex-direction:column;}
+body.mobile .hex-scroll-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;width:100%;}
+body.mobile .hex-scroll-wrap::-webkit-scrollbar{height:3px;}
+body.mobile .hex-scroll-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 body.mobile .hex-notes{display:none;}
 body.mobile .hex-hint{display:none;}
 body.mobile .hex-clear{display:none;}
@@ -90,9 +93,9 @@ body.mobile .sidebar-desktop{display:none;}
 .mob-row{width:100%;}
 .mob-full{/* full width, nothing special */}
 .mob-half{display:grid;gap:8px;align-items:start;}
-.mob-r2{grid-template-columns:3fr 2fr;}   /* L2: board planner wider than carry */
-.mob-r3{grid-template-columns:5fr 6fr;}   /* L3: leveling guide +10% wider */
-.mob-r4{grid-template-columns:5fr 6fr;}   /* L4: tips +10% wider */
+.mob-r2{grid-template-columns:7fr 6fr;}   /* L2: board planner, carry items */
+.mob-r3{grid-template-columns:7fr 6fr;}   /* L3: general info, leveling guide */
+.mob-r4{grid-template-columns:7fr 6fr;}   /* L4: carousel/syn/augs, tips */
 .mob-left{min-width:0;}
 .mob-right{min-width:0;}
 
@@ -234,7 +237,7 @@ body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234
 .hex-board{display:inline-flex;flex-direction:column;gap:2px;padding:8px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);}
 .hex-row{display:flex;gap:2px;}
 .hex-row.off{margin-left:22px;}
-.hex{width:38px;height:38px;background:var(--bg4);border:1px dashed var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:14px;color:var(--text3);opacity:.55;transition:border-color .12s,background .12s,opacity .12s;}
+.hex{width:34px;height:34px;background:var(--bg4);border:1px dashed var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:14px;color:var(--text3);opacity:.55;transition:border-color .12s,background .12s,opacity .12s;}
 .hex:hover{border-color:var(--accent);background:rgba(59,130,246,.07);opacity:1;}
 .hex.filled{border:1px solid var(--gold);padding:0;overflow:hidden;opacity:1;cursor:default;}
 .hex.filled:hover{border-color:var(--gold2);}
@@ -257,7 +260,7 @@ body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234
 .carry-items{display:flex;flex-direction:column;gap:3px;flex:1;}
 .citem{display:flex;align-items:center;gap:4px;padding:2px 5px;background:var(--bg3);border-radius:4px;border:1px solid var(--border);cursor:default;}
 .citem:hover{border-color:var(--border2);}
-.citem img.ci-img{width:16px;height:16px;border-radius:3px;flex-shrink:0;}
+.citem img.ci-img{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
 .citem-name{font-size:9px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .citem-comps{display:flex;gap:2px;margin-top:1px;}
 .comp-icon{width:13px;height:13px;border-radius:2px;border:1px solid var(--border);}
@@ -874,7 +877,7 @@ function lateHTML(d){
 
 function hexHTML(phase,d){
   const notes=d._boards&&d._boards[phase]?d._boards[phase].notes:'';
-  return`<div id="hb-${phase}" class="hex-board"></div>
+  return`<div class="hex-scroll-wrap"><div id="hb-${phase}" class="hex-board"></div></div>
 <div class="hex-hint">Click to place · hover to remove</div>
 <textarea class="hex-notes" id="notes-${phase}" placeholder="${phase} notes…">${notes}</textarea>
 <button class="hex-clear" onclick="clearBoard('${phase}')">Clear</button>`;
