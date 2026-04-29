@@ -160,6 +160,10 @@ body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234
 .aug-search{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:6px 10px;outline:none;margin-bottom:6px;}
 .aug-search:focus{border-color:var(--accent);}
 .aug-typed{font-size:10px;color:var(--accent2);margin-bottom:8px;}
+.aug-dropdown{position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.4);max-height:220px;overflow-y:auto;margin-top:2px;}
+.aug-dd-item{display:flex;align-items:center;gap:7px;padding:6px 10px;cursor:pointer;font-size:11px;color:var(--text);transition:background .1s;}
+.aug-dd-item:hover,.aug-dd-item.sel{background:var(--bg3);}
+.aug-dd-item.sel{color:var(--accent2);}
 .results-area{display:flex;flex-direction:column;gap:8px;}
 .result-card{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;cursor:pointer;transition:border-color .15s;}
 .result-card:hover{border-color:var(--accent2);}
@@ -1031,7 +1035,7 @@ const ROSTER = [
   // 4-costs
   {c:4,s:'graves',n:'Graves'},{c:4,s:'karma',n:'Karma'},{c:4,s:'kindred',n:'Kindred'},
   {c:4,s:'leblanc',n:'LeBlanc'},{c:4,s:'masteryi',n:'Master Yi'},{c:4,s:'nami',n:'Nami'},
-  {c:4,s:'galio',n:'The Mighty Mech'},{c:4,s:'urgot',n:'Urgot'},
+  {c:4,s:'the-mighty-mech',n:'The Mighty Mech'},{c:4,s:'urgot',n:'Urgot'},
   // 5-costs
   {c:5,s:'aurelionsol',n:'Aurelion Sol'},{c:5,s:'bard',n:'Bard'},{c:5,s:'blitzcrank',n:'Blitzcrank'},
   {c:5,s:'jhin',n:'Jhin'},{c:5,s:'maokai',n:'Maokai'},{c:5,s:'missfortune',n:'Miss Fortune'},
@@ -1041,7 +1045,8 @@ const COST_COLORS={1:'#94a3b8',2:'#4ade80',3:'#60a5fa',4:'#c084fc',5:'#fbbf24'};
 
 // ── HOME PAGE STATE ────────────────────────────────────────────────────────────
 let selectedChamps = new Set(); // slugs
-let augmentText = '';
+let selectedAugs   = new Set(); // slugs
+let augInputText   = '';
 
 function showHome(){
   saveNotes();
@@ -1071,9 +1076,12 @@ function renderHome(){
       <div class="champ-picker-grid" id="rosterGrid"></div>
       <div id="selChamps" class="sel-champs"></div>
 
-      <div class="home-section-h">Your Augment (optional)</div>
-      <input class="aug-search" id="augInput" placeholder="Type augment name…" oninput="onAugInput()" value="${augmentText}"/>
-      ${augmentText?`<div class="aug-typed">Searching for: <b>${augmentText}</b></div>`:''}
+      <div class="home-section-h">Your Augments (optional)</div>
+      <div style="position:relative;">
+        <input class="aug-search" id="augInput" placeholder="Type augment name…" oninput="onAugInput()" autocomplete="off"/>
+        <div class="aug-dropdown" id="augDropdown" style="display:none;"></div>
+      </div>
+      <div id="selAugs" class="sel-champs"></div>
 
       <div class="home-section-h">Matching Comps</div>
       <div id="homeResults" class="results-area"></div>
@@ -1081,6 +1089,7 @@ function renderHome(){
 
   renderRoster('');
   renderSelChamps();
+  renderSelAugs();
   runMatching();
 }
 
@@ -1124,9 +1133,77 @@ function renderSelChamps(){
 }
 
 function onAugInput(){
-  augmentText = document.getElementById('augInput').value;
+  augInputText = document.getElementById('augInput').value;
+  renderAugDropdown();
+}
+
+function renderAugDropdown(){
+  const dd = document.getElementById('augDropdown');
+  if(!dd) return;
+  const q = augInputText.trim().toLowerCase();
+  if(q.length < 2){ dd.style.display='none'; return; }
+
+  // Build deduplicated list of all augments across all saved comps
+  const seen = new Set();
+  const candidates = [];
+  comps.forEach(comp=>{
+    [...(comp.augments?.tier1||[]),...(comp.augments?.tier2||[]),...(comp.augments?.tier3||[])].forEach(a=>{
+      if(seen.has(a.slug)) return;
+      seen.add(a.slug);
+      const name = (AUGMENT_LOOKUP[a.slug]?.name || a.name || a.slug || '');
+      const slugReadable = (a.slug||'').replace(/-/g,' ');
+      if(name.toLowerCase().includes(q) || slugReadable.toLowerCase().includes(q)){
+        candidates.push({slug:a.slug, name, imgUrl: a.imgUrl || `https://cdn.mobalytics.gg/assets/tft/images/hextech-augments/set17/${a.slug}.webp?v=5`});
+      }
+    });
+  });
+
+  if(!candidates.length){ dd.style.display='none'; return; }
+
+  dd.innerHTML = candidates.slice(0,8).map(a=>`
+    <div class="aug-dd-item${selectedAugs.has(a.slug)?' sel':''}" onclick="selectAug('${a.slug}','${a.name.replace(/'/g,"\\'")}','${a.imgUrl}')">
+      <img src="${a.imgUrl}" onerror="this.style.opacity=.3" style="width:20px;height:20px;border-radius:3px;flex-shrink:0;"/>
+      <span>${a.name}</span>
+      ${selectedAugs.has(a.slug)?'<span style="margin-left:auto;color:var(--accent2);font-size:10px;">✓</span>':''}
+    </div>`).join('');
+  dd.style.display='block';
+}
+
+function selectAug(slug, name, imgUrl){
+  if(selectedAugs.has(slug)){ selectedAugs.delete(slug); }
+  else { selectedAugs.add(slug); }
+  // Clear input and hide dropdown
+  augInputText = '';
+  const inp = document.getElementById('augInput');
+  if(inp){ inp.value=''; inp.focus(); }
+  document.getElementById('augDropdown').style.display='none';
+  renderSelAugs();
   runMatching();
 }
+
+function removeAug(slug){
+  selectedAugs.delete(slug);
+  renderSelAugs();
+  runMatching();
+}
+
+function renderSelAugs(){
+  const el = document.getElementById('selAugs');
+  if(!el) return;
+  if(!selectedAugs.size){ el.innerHTML='<span style="font-size:10px;color:var(--text3);">No augments selected yet</span>'; return; }
+  el.innerHTML = [...selectedAugs].map(slug=>{
+    const name = AUGMENT_LOOKUP[slug]?.name || slug;
+    const imgUrl = `https://cdn.mobalytics.gg/assets/tft/images/hextech-augments/set17/${slug}.webp?v=5`;
+    return `<div class="sel-tag"><img src="${imgUrl}" style="width:16px;height:16px;border-radius:2px;" onerror="this.style.opacity=.3"/>${name}<span class="sel-tag-x" onclick="removeAug('${slug}')">✕</span></div>`;
+  }).join('');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e=>{
+  const dd = document.getElementById('augDropdown');
+  const inp = document.getElementById('augInput');
+  if(dd && inp && !dd.contains(e.target) && e.target !== inp) dd.style.display='none';
+});
 
 function runMatching(){
   const resultsEl = document.getElementById('homeResults');
@@ -1176,27 +1253,24 @@ function runMatching(){
       });
     }
 
-    // Augment match
-    if(augmentText.trim().length > 1){
-      const aug = augmentText.trim().toLowerCase();
+    // Augment matches (any selected aug that appears in this comp scores)
+    if(selectedAugs.size){
       const allAugs = [...(comp.augments?.tier1||[]),...(comp.augments?.tier2||[]),...(comp.augments?.tier3||[])];
-      const augMatch = allAugs.find(a=>{
-        const resolvedName = (AUGMENT_LOOKUP[a.slug]?.name || a.name || a.slug || '').toLowerCase();
-        const slugReadable = (a.slug||'').replace(/-/g,' ').toLowerCase();
-        return resolvedName.includes(aug) || slugReadable.includes(aug);
+      selectedAugs.forEach(slug=>{
+        const hit = allAugs.find(a=>a.slug===slug);
+        if(hit){
+          const resolvedName = AUGMENT_LOOKUP[slug]?.name || hit.name || slug;
+          score += 5;
+          matchTags.push({label:'Augment: '+resolvedName, type:'aug'});
+        }
       });
-      if(augMatch){
-        const resolvedName = AUGMENT_LOOKUP[augMatch.slug]?.name || augMatch.name || augMatch.slug || '';
-        score += 5;
-        matchTags.push({label:'Augment: '+resolvedName, type:'aug'});
-      }
     }
 
     return {comp, idx, score, matchTags};
   }).filter(r=>r.score>0).sort((a,b)=>b.score-a.score);
 
   if(!scored.length){
-    if(!selectedChamps.size && !augmentText){
+    if(!selectedChamps.size && !selectedAugs.size){
       resultsEl.innerHTML='<div class="no-results">Select champions or type an augment above to see matches</div>';
     } else {
       resultsEl.innerHTML='<div class="no-results">No matching comps found — try different champions</div>';
