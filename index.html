@@ -324,6 +324,7 @@ body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234
 /* ─── TOOLTIP ─── */
 .tt{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:9px 11px;max-width:270px;z-index:9999;pointer-events:none;display:none;box-shadow:0 8px 24px rgba(0,0,0,.7);}
 .tt.on{display:block;}
+.tt.interactive{pointer-events:auto;}
 .tt-n{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
 .tt-img{width:28px;height:28px;border-radius:3px;float:right;margin:0 0 4px 7px;}
 .tt-levels{display:flex;flex-direction:column;gap:3px;clear:both;}
@@ -333,7 +334,30 @@ body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234
 .tt-num{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;min-width:14px;flex-shrink:0;}
 .tt-tag{font-size:8px;color:var(--gold3);font-family:'Rajdhani',sans-serif;font-weight:700;white-space:nowrap;margin-top:2px;}
 
-/* ─── MODALS ─── */
+/* ─── CHAMPION STAT CARD TOOLTIP ─── */
+.tt-champ{min-width:230px;max-width:260px;}
+.tt-champ-head{display:flex;align-items:center;gap:8px;margin-bottom:7px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.tt-champ-img{width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0;border:2px solid var(--border2);}
+.tt-champ-info{flex:1;min-width:0;}
+.tt-champ-name{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;line-height:1;margin-bottom:2px;}
+.tt-champ-traits{display:flex;gap:3px;flex-wrap:wrap;}
+.tt-trait-badge{font-size:8px;padding:1px 5px;border-radius:3px;font-family:'Rajdhani',sans-serif;font-weight:600;background:var(--bg3);color:var(--text2);border:1px solid var(--border2);}
+.tt-ability{background:var(--bg3);border-radius:5px;padding:5px 7px;margin-bottom:7px;}
+.tt-ability-name{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:3px;}
+.tt-ability-desc{font-size:9px;color:var(--text2);line-height:1.5;}
+.tt-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;}
+.tt-stat{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--text2);}
+.tt-stat-val{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;color:var(--text);margin-left:auto;}
+.tt-star-row{display:flex;justify-content:center;gap:4px;margin-bottom:5px;}
+.tt-star-btn{font-size:9px;padding:1px 7px;border-radius:3px;border:1px solid var(--border2);background:var(--bg3);color:var(--text3);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;}
+.tt-star-btn.on{background:rgba(251,191,36,.15);border-color:var(--gold2);color:var(--gold2);}
+/* cost border colors on champion images */
+.ci[data-cost="1"]{border-color:#94a3b8;}
+.ci[data-cost="2"]{border-color:#4ade80;}
+.ci[data-cost="3"]{border-color:#60a5fa;}
+.ci[data-cost="4"]{border-color:#c084fc;}
+.ci[data-cost="5"]{border-color:#fbbf24;}
+
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;}
 .overlay.on{display:flex;}
 .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:16px;}
@@ -399,11 +423,7 @@ body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234
 </div>
 
 <!-- Tooltip -->
-<div class="tt" id="tt">
-  <div class="tt-n" id="tt-n"></div>
-  <img class="tt-img" id="tt-img" src="" alt="" onerror="this.style.display='none'"/>
-  <div class="tt-levels" id="tt-lv"></div>
-</div>
+<div class="tt" id="tt"></div>
 
 <!-- Picker overlay -->
 <div class="overlay" id="pickerOverlay">
@@ -478,7 +498,46 @@ async function loadLookup() {
   } catch(e) { console.warn('Could not load lookup CSV:', e); }
 }
 
-// ── ASSET HOST ────────────────────────────────────────────────────────────────
+// ── CHAMPION STATS (loaded from GitHub CSV) ───────────────────────────────────
+let CHAMP_STATS = {}; // keyed by slug
+
+const CHAMP_CSV_URL = 'https://raw.githubusercontent.com/01sebakan/tft-assets/main/Champions%20Stats.csv';
+
+async function loadChampStats(){
+  try{
+    const res = await fetch(CHAMP_CSV_URL);
+    if(!res.ok) return;
+    const text = await res.text();
+    const lines = text.replace(/\r\n/g,'\n').trim().split('\n');
+    for(let i=1;i<lines.length;i++){
+      let line = lines[i].trim();
+      if(!line) continue;
+      if(line.startsWith('"')&&line.endsWith('"')) line=line.slice(1,-1);
+      const cols = line.split('|').map(c=>c.trim());
+      while(cols.length<17) cols.push('');
+      const [name,slug,cost,aname,adesc,hp,armor,mr,dmg,dps,spd,mana,rng,s1,s2,s3] = cols;
+      const syns = [s1,s2,s3].filter(Boolean);
+      CHAMP_STATS[slug] = {name,slug,cost:parseInt(cost)||0,aname,adesc,hp,armor,mr,dmg,dps,spd,mana,rng,syns};
+    }
+  }catch(e){ console.warn('Could not load champion stats:', e); }
+}
+
+// Inline SVG stat icons (no external hosting needed)
+const STAT_ICONS = {
+  hp:    `<svg viewBox="0 0 16 16" fill="none"><path d="M8 14s-6-3.5-6-8a4 4 0 0 1 6-3.46A4 4 0 0 1 14 6c0 4.5-6 8-6 8z" fill="#f87171"/></svg>`,
+  armor: `<svg viewBox="0 0 16 16" fill="none"><path d="M8 2L3 4.5V8c0 3 2.5 5 5 6 2.5-1 5-3 5-6V4.5L8 2z" fill="#fbbf24"/></svg>`,
+  mr:    `<svg viewBox="0 0 16 16" fill="none"><path d="M8 2L3 4.5V8c0 3 2.5 5 5 6 2.5-1 5-3 5-6V4.5L8 2z" fill="#818cf8"/><path d="M6 7l1.5 2L11 5" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  dmg:   `<svg viewBox="0 0 16 16" fill="none"><path d="M9 2l-5 7h4l-2 5 7-8h-4l2-4H9z" fill="#fb923c"/></svg>`,
+  dps:   `<svg viewBox="0 0 16 16" fill="none"><path d="M3 13L8 3l5 10H3z" fill="#f43f5e" opacity=".8"/><path d="M5.5 13l2.5-5 2.5 5" stroke="#fff" stroke-width=".8" stroke-linecap="round"/></svg>`,
+  spd:   `<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#34d399" stroke-width="1.5"/><path d="M8 5v3l2 1.5" stroke="#34d399" stroke-width="1.2" stroke-linecap="round"/></svg>`,
+  mana:  `<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" fill="#38bdf8" opacity=".2"/><path d="M8 3v10M3 8h10" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="8" r="2" fill="#38bdf8"/></svg>`,
+  rng:   `<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="2 2"/><circle cx="8" cy="8" r="1.5" fill="#a78bfa"/></svg>`,
+};
+
+function statIcon(key){
+  return `<span class="si" style="width:12px;height:12px;display:inline-flex;flex-shrink:0;">${STAT_ICONS[key]||''}</span>`;
+}
+
 // Images are served from a GitHub repo that doesn't block hotlinking.
 // After running download_tft_assets.py and pushing, set this to your repo:
 //   https://raw.githubusercontent.com/YOUR_USERNAME/tft-assets/main
@@ -654,8 +713,10 @@ function renderComp(d){
   const champs=(d.champions||[]).map(c=>{
     const s=c.stars?`<div class="stars">${'<span class="star">★</span>'.repeat(c.stars)}</div>`:'';
     const img=champUrl(c.slug);
-    return `<div class="cc" data-tt="champ" data-name="${c.name}" data-img="${img}">
-      <div class="ci-wrap"><img class="ci" src="${img}" onerror="this.style.opacity=.4"/>${s}</div>
+    const stats=CHAMP_STATS[c.slug]||{};
+    const cost=stats.cost||c.cost||0;
+    return `<div class="cc" data-tt="champ-stat" data-slug="${c.slug}" data-name="${c.name}" data-img="${img}">
+      <div class="ci-wrap"><img class="ci" data-cost="${cost}" src="${img}" onerror="this.style.opacity=.4"/>${s}</div>
       <div class="cn">${c.name}</div>
       <div class="ct">${(c.traits||[]).map(t=>`<img class="cti" src="${ICONS}/tft-synergies-set17/24-${t}.svg?v=5" onerror="this.style.display='none'"/>`).join('')}</div>
     </div>`;
@@ -971,17 +1032,110 @@ function clearBoard(phase){
 }
 
 // ── TOOLTIPS ──────────────────────────────────────────────────────────────────
+let _ttStar = 1; // currently displayed star level in stat tooltip
+let _ttSlug = null;
+
+function buildChampStatCard(slug, star){
+  const st = CHAMP_STATS[slug];
+  if(!st) return null;
+  const img = champUrl(slug);
+  const cost = st.cost||0;
+  const borderColor = COST_COLORS[cost]||'var(--border2)';
+
+  function tri(s, i){ // i = 0/1/2 for 1★/2★/3★
+    if(!s) return '—';
+    const p = s.split('/').map(x=>x.trim());
+    return p[i]||p[0]||'—';
+  }
+
+  const i = star-1;
+  const hpVal  = tri(st.hp,i);
+  const dmgVal = tri(st.dmg,i);
+  const dpsVal = tri(st.dps,i);
+
+  const traitsHtml = st.syns.map(syn=>{
+    const traitInfo = TRAITS[syn];
+    const label = traitInfo?.name || syn.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    return `<span class="tt-trait-badge">${label}</span>`;
+  }).join('');
+
+  const manaStart = st.mana.split('/')[0]?.trim()||'0';
+  const manaMax   = st.mana.split('/')[1]?.trim()||'0';
+  const manaStr   = manaMax==='0' ? 'No mana' : `${manaStart} / ${manaMax}`;
+  const dmgDisplay = (st.dmg==='0 / 0 / 0'||!st.dmg) ? '—' : dmgVal;
+  const dpsDisplay = (st.dps==='0 / 0 / 0'||!st.dps) ? '—' : dpsVal;
+
+  const starBtns = [1,2,3].map(n=>
+    `<button class="tt-star-btn${n===star?' on':''}" onmousedown="event.preventDefault();ttSetStar('${slug}',${n})">${'★'.repeat(n)}</button>`
+  ).join('');
+
+  return `
+    <div class="tt-champ">
+      <div class="tt-champ-head">
+        <img class="tt-champ-img" src="${img}" style="border-color:${borderColor}" onerror="this.style.opacity=.4"/>
+        <div class="tt-champ-info">
+          <div class="tt-champ-name" style="color:${borderColor}">${st.name}</div>
+          <div class="tt-champ-traits">${traitsHtml}</div>
+        </div>
+      </div>
+      <div class="tt-star-row">${starBtns}</div>
+      <div class="tt-ability">
+        <div class="tt-ability-name">${st.aname}</div>
+        <div class="tt-ability-desc">${st.adesc||'—'}</div>
+      </div>
+      <div class="tt-stats-grid">
+        <div class="tt-stat">${statIcon('hp')} HP <span class="tt-stat-val">${hpVal}</span></div>
+        <div class="tt-stat">${statIcon('armor')} Armor <span class="tt-stat-val">${st.armor}</span></div>
+        <div class="tt-stat">${statIcon('mr')} MR <span class="tt-stat-val">${st.mr}</span></div>
+        <div class="tt-stat">${statIcon('spd')} Speed <span class="tt-stat-val">${st.spd}</span></div>
+        <div class="tt-stat">${statIcon('dmg')} Damage <span class="tt-stat-val">${dmgDisplay}</span></div>
+        <div class="tt-stat">${statIcon('dps')} DPS <span class="tt-stat-val">${dpsDisplay}</span></div>
+        <div class="tt-stat">${statIcon('mana')} Mana <span class="tt-stat-val">${manaStr}</span></div>
+        <div class="tt-stat">${statIcon('rng')} Range <span class="tt-stat-val">${st.rng.split('/')[0]||'—'}</span></div>
+      </div>
+    </div>`;
+}
+
+function ttSetStar(slug, star){
+  _ttStar = star;
+  const card = buildChampStatCard(slug, star);
+  if(card){
+    document.getElementById('tt').innerHTML = card;
+    document.getElementById('tt').classList.add('on','interactive');
+  }
+}
+
 function attachTT(){
   const tt=document.getElementById('tt');
   document.querySelectorAll('[data-tt]').forEach(el=>{
-    el.addEventListener('mouseenter',e=>{
-      const type=el.dataset.tt,name=el.dataset.name||'',img=el.dataset.img||'';
-      document.getElementById('tt-n').textContent=name;
-      const ti=document.getElementById('tt-img');ti.src=img;ti.style.display=img?'block':'none';
+    // Remove old listeners by replacing clone
+    const fresh=el.cloneNode(true);
+    el.parentNode.replaceChild(fresh,el);
+    
+    fresh.addEventListener('mouseenter',e=>{
+      const type=fresh.dataset.tt, name=fresh.dataset.name||'', img=fresh.dataset.img||'', slug=fresh.dataset.slug||'';
+
+      if(type==='champ-stat'){
+        if(!CHAMP_STATS[slug]){
+          // fallback: show just name + image
+          tt.className='tt on';
+          tt.innerHTML=`<div class="tt-n">${name}</div><img class="tt-img" src="${img}" style="display:block"/>`;
+          posTT(e); return;
+        }
+        _ttSlug = slug; _ttStar = 1;
+        const card = buildChampStatCard(slug, 1);
+        tt.className='tt on interactive';
+        tt.innerHTML = card;
+        posTT(e); return;
+      }
+
+      // Non-champ tooltips: original logic
+      tt.className='tt on';
+      tt.innerHTML=`<div class="tt-n" id="tt-n">${name}</div><img class="tt-img" id="tt-img" src="${img}" style="display:${img?'block':'none'}" onerror="this.style.display='none'"/><div class="tt-levels" id="tt-lv"></div>`;
       let html='';
       if(type==='trait'){
-        const slug=el.dataset.slug||'',count=parseInt(el.dataset.count||0);
-        const info=TRAITS[slug];
+        const tslug=fresh.dataset.slug||'',count=parseInt(fresh.dataset.count||0);
+        const info=TRAITS[tslug];
         if(info){
           const effects=info.effects||{};
           const activeN=info.levels&&info.levels.filter(n=>count>=n).pop();
@@ -997,20 +1151,29 @@ function attachTT(){
           }).join('');}
         }
       }
-      if(type==='augment'){const desc=el.dataset.desc||'';if(desc)html=`<div style="font-size:10px;color:var(--text2);line-height:1.6;">${desc}</div>`;}
-      if(type==='item'){/* name shown in header */}
+      if(type==='augment'){const desc=fresh.dataset.desc||'';if(desc)html=`<div style="font-size:10px;color:var(--text2);line-height:1.6;">${desc}</div>`;}
       document.getElementById('tt-lv').innerHTML=html;
-      tt.classList.add('on');posTT(e);
+      posTT(e);
     });
-    el.addEventListener('mousemove',posTT);
-    el.addEventListener('mouseleave',()=>document.getElementById('tt').classList.remove('on'));
+    fresh.addEventListener('mousemove',e=>{
+      if(!tt.classList.contains('interactive')) posTT(e);
+    });
+    fresh.addEventListener('mouseleave',()=>{
+      // Small delay so star buttons remain clickable
+      setTimeout(()=>{ if(!tt.matches(':hover')) tt.className='tt'; }, 120);
+    });
   });
+
+  // Tooltip self-hover for interactive mode
+  tt.addEventListener('mouseleave',()=>{ tt.className='tt'; });
 }
 function posTT(e){
   const t=document.getElementById('tt');
   let x=e.clientX+14,y=e.clientY-8;
-  if(x+280>window.innerWidth)x=e.clientX-288;
-  if(y+220>window.innerHeight)y=e.clientY-220;
+  const w=t.offsetWidth||280, h=t.offsetHeight||220;
+  if(x+w>window.innerWidth-8) x=e.clientX-w-8;
+  if(y+h>window.innerHeight-8) y=window.innerHeight-h-8;
+  if(y<8) y=8;
   t.style.left=x+'px';t.style.top=y+'px';
 }
 
@@ -1105,12 +1268,14 @@ function renderRoster(q){
   grid.innerHTML = filtered.map(ch=>{
     const sel = selectedChamps.has(ch.s);
     const img = champUrl(ch.s);
-    return `<div class="cpc${sel?' sel':''}" onclick="toggleChamp('${ch.s}')" title="${ch.n}">
-      <img src="${img}" onerror="this.style.opacity=.3"/>
+    const borderColor = COST_COLORS[ch.c]||'var(--border2)';
+    return `<div class="cpc${sel?' sel':''}" onclick="toggleChamp('${ch.s}')" data-tt="champ-stat" data-slug="${ch.s}" data-name="${ch.n}" data-img="${img}" title="${ch.n}">
+      <img src="${img}" style="border:2px solid ${borderColor};" onerror="this.style.opacity=.3"/>
       <div class="cpc-cost" style="color:${COST_COLORS[ch.c]||'#fff'}">${ch.c}</div>
       <div class="cpc-name">${ch.n}</div>
     </div>`;
   }).join('');
+  attachTT();
 }
 
 function toggleChamp(slug){
@@ -1305,6 +1470,7 @@ window.addEventListener('beforeunload',saveNotes);
 
 // Load CSV lookup then re-render active comp so tooltips use fresh data
 loadLookup().then(()=>{ if(comps.length && ai !== null) renderComp(comps[ai]); });
+loadChampStats().then(()=>{ if(comps.length && ai !== null) renderComp(comps[ai]); });
 
 // ── INIT (save override for cloud sync) ──────────────────────────────────────
 const _origSave = save;
