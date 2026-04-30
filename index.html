@@ -733,11 +733,14 @@ function renderComp(d){
   // carries (with stars on champ icon)
   const carries=(d.carries||[]).map(c=>{
     const cImg=champUrl(c.slug);
+    const cStats=CHAMP_STATS[c.slug]||{};
+    const cCost=cStats.cost||c.cost||0;
+    const cBorder=COST_COLORS[cCost]||'var(--border2)';
     return `
     <div class="carry-row">
-      <div class="carry-champ">
+      <div class="carry-champ" data-tt="champ-stat" data-slug="${c.slug}" data-name="${c.name}" data-img="${cImg}">
         <div class="ci-wrap" style="display:inline-block;position:relative;">
-          <img src="${cImg}" style="width:36px;height:36px;border-radius:5px;border:1px solid var(--border2);display:block;" onerror="this.style.opacity=.4"/>
+          <img src="${cImg}" style="width:36px;height:36px;border-radius:5px;border:2px solid ${cBorder};display:block;" onerror="this.style.opacity=.4"/>
           ${c.stars?`<div class="stars">${'<span class=\"star\">★</span>'.repeat(c.stars)}</div>`:''}
         </div>
         <div class="carry-cname">${c.name}</div>
