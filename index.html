@@ -242,8 +242,8 @@ body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234
 .hex-row.off{margin-left:22px;}
 .hex{width:34px;height:34px;background:var(--bg4);border:1px dashed var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:14px;color:var(--text3);opacity:.55;transition:border-color .12s,background .12s,opacity .12s;}
 .hex:hover{border-color:var(--accent);background:rgba(59,130,246,.07);opacity:1;}
-.hex.filled{border:1px solid var(--gold);padding:0;overflow:hidden;opacity:1;cursor:default;}
-.hex.filled:hover{border-color:var(--gold2);}
+.hex.filled{border:1px solid var(--border2);padding:0;overflow:hidden;opacity:1;cursor:default;}
+.hex.filled:hover{border-color:var(--border2);}
 .hex.filled img{width:100%;height:100%;object-fit:cover;border-radius:4px;}
 .hlabel{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.8);font-size:6px;text-align:center;padding:1px;color:#fff;border-radius:0 0 3px 3px;}
 .hrem{position:absolute;top:1px;right:1px;width:11px;height:11px;background:rgba(239,68,68,.9);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:7px;cursor:pointer;color:#fff;z-index:2;}
@@ -498,6 +498,41 @@ async function loadLookup() {
   } catch(e) { console.warn('Could not load lookup CSV:', e); }
 }
 
+// ── ITEM DATA (loaded from GitHub CSV) ────────────────────────────────────────
+let ITEM_DATA = {}; // keyed by slug
+
+const ITEM_CSV_URL = 'https://raw.githubusercontent.com/01sebakan/tft-assets/main/items.csv';
+
+async function loadItemData(){
+  try{
+    const res = await fetch(ITEM_CSV_URL);
+    if(!res.ok) return;
+    const text = await res.text();
+    const lines = text.replace(/\r\n/g,'\n').replace(/^\uFEFF/,'').trim().split('\n');
+    let mode = null;
+    for(const raw of lines){
+      const line = raw.trim();
+      if(!line) continue;
+      if(line === 'Components'){ mode='component'; continue; }
+      if(line === 'Completed items'){ mode='complete'; continue; }
+      if(line.startsWith('name|')) continue;
+      // Strip outer quotes (some rows wrapped due to | in description)
+      const unquoted = (line.startsWith('"') && line.endsWith('"')) ? line.slice(1,-1) : line;
+      const cols = unquoted.split('|').map(c=>c.trim());
+      if(mode==='component' && cols.length>=3){
+        const [name,slug,desc] = cols;
+        if(name && slug) ITEM_DATA[slug]={name,slug,type:'component',desc,stats:{}};
+      } else if(mode==='complete' && cols.length>=4){
+        const [name,slug,desc,hp,armor,mr,spd,ad,ap,dps,mana]=cols;
+        const stats={};
+        const pairs={hp,armor,mr,spd,ad,ap,dps,mana};
+        for(const [k,v] of Object.entries(pairs)) if(v&&v!=='-') stats[k]=v;
+        if(name && slug) ITEM_DATA[slug]={name,slug,type:'complete',desc,stats};
+      }
+    }
+  }catch(e){ console.warn('Could not load item data:',e); }
+}
+
 // ── CHAMPION STATS (loaded from GitHub CSV) ───────────────────────────────────
 let CHAMP_STATS = {}; // keyed by slug
 
@@ -560,7 +595,40 @@ function toRawImg(url){
 }
 
 function champUrl(slug){ return _USING_GH ? `${GITHUB_ASSETS}/champions/${slug}.png` : `${CDN}/champions/icons/set17/${slug}.png?v=5`; }
-function itemUrl(slug){  return _USING_GH ? `${GITHUB_ASSETS}/items/${slug}.png`     : `${CDN}/game-items/set17/${slug}.png?v=5`; }
+// Slug aliases: comp JSON slug → your CSV/GitHub slug
+const ITEM_SLUG_MAP = {
+  'krakens-fury':        'krakens-fury',   // already correct
+  'krakensfury':         'krakens-fury',
+  'dragons-claw':        'dragons-claw',
+  'dragonsclaw':         'dragons-claw',
+  'nashors-tooth':       'nashors-tooth',
+  'nashorsTooth':        'nashors-tooth',
+  'rabadons-deathcap':   'rabadons-deathcap',
+  'rabadonsdeathcap':    'rabadons-deathcap',
+  'titans-resolve':      'titans-resolve',
+  'titansresolve':       'titans-resolve',
+  'steraks-gage':        'steraks-gage',
+  'steraksgage':         'steraks-gage',
+  'archangels-staff':    'archangels-staff',
+  'archangelsstaff':     'archangels-staff',
+  'protectors-vow':      'protectors-vow',
+  'protectorsvow':       'protectors-vow',
+  'strikers-flail':      'strikers-flail',
+  'strikers_flail':      'strikers-flail',
+  'giants-belt':         'giants-belt',
+  'giantsbelt':          'giants-belt',
+  'needlessly-large-rod':'needlessly-large-rod',
+  'tear-of-the-goddess': 'tear-of-the-goddess',
+  'tearofthegoddess':    'tear-of-the-goddess',
+  'sparring-gloves':     'sparring-gloves',
+  'sparringgloves':      'sparring-gloves',
+  'thiefs-gloves':       'thiefs-gloves',
+  'thiefsgloves':        'thiefs-gloves',
+  'guinsoos-rageblade':  'guinsoos-rageblade',
+  'guinsoosrageblade':   'guinsoos-rageblade',
+};
+function normItemSlug(slug){ return ITEM_SLUG_MAP[slug] || slug; }
+function itemUrl(slug){ const s=normItemSlug(slug); return _USING_GH ? `${GITHUB_ASSETS}/items/${s}.png` : `${CDN}/game-items/set17/${s}.png?v=5`; }
 function badgeUrl(b){    return _USING_GH ? `${GITHUB_ASSETS}/badges/${b}.png`       : `${CDN}/synergies-badges/${b}.png`; }
 
 // ── CLOUD SYNC (JSONBin) ───────────────────────────────────────────────────────
@@ -749,7 +817,7 @@ function renderComp(d){
         ${(c.items||[]).map(it=>{
           const iImg=itemUrl(it.slug);
           return `
-          <div class="citem" data-tt="item" data-name="${it.name}" data-img="${iImg}">
+          <div class="citem" data-tt="item" data-slug="${it.slug}" data-name="${it.name}" data-img="${iImg}">
             <img class="ci-img" src="${iImg}" onerror="this.style.opacity=.4"/>
             <div class="citem-name">${it.name}${(it.components||[]).length?`<div class="citem-comps">${it.components.map(x=>`<img class="comp-icon" src="${itemUrl(x)}" onerror="this.style.opacity=.3"/>`).join('')}</div>`:''}</div>
           </div>`;
@@ -778,7 +846,7 @@ function renderComp(d){
   // carousel
   const car=(d.carousel||[]).map((slug,i)=>{
     const iImg=itemUrl(slug);
-    return `<div class="car-item" data-tt="item" data-name="${slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}" data-img="${iImg}">
+    return `<div class="car-item" data-tt="item" data-slug="${slug}" data-name="${slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}" data-img="${iImg}">
       <img src="${iImg}" onerror="this.style.opacity=.4"/>
     </div>
     ${i<d.carousel.length-1?'<span class="car-arr">›</span>':''}`;
@@ -932,13 +1000,26 @@ function renderComp(d){
 function planHTML(plan){
   if(!plan)return'';
   return`${(plan.traits||[]).length?`<div class="plan-traits">${plan.traits.map(t=>`<div class="ptb"><img src="${ICONS}/tft-synergies-set17/24-${t.slug}.svg?v=5" onerror="this.style.display='none'"/><span>${t.name||t.slug}</span><span class="ptc"> ${t.count}</span></div>`).join('')}</div>`:''}
-${(plan.units||[]).length?`<div class="plan-units">${plan.units.map(u=>`<div class="pu"><img src="${champUrl(u)}" onerror="this.style.opacity=.4"/><div class="pu-name">${u.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div></div>`).join('')}</div>`:''}
+${(plan.units||[]).length?`<div class="plan-units">${plan.units.map(u=>{
+  const uStats=CHAMP_STATS[u]||{};
+  const uCost=uStats.cost||0;
+  const uBorder=COST_COLORS[uCost]||'var(--border2)';
+  const uName=uStats.name||(u.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()));
+  const uImg=champUrl(u);
+  return `<div class="pu" data-tt="champ-stat" data-slug="${u}" data-name="${uName}" data-img="${uImg}"><img src="${uImg}" style="border:2px solid ${uBorder};" onerror="this.style.opacity=.4"/><div class="pu-name">${uName}</div></div>`;
+}).join('')}</div>`:''}
 ${(plan.tips||[]).length?`<div class="plan-tips">${plan.tips.map(t=>`<div class="ti">${t}</div>`).join('')}</div>`:''}`;
 }
 
 function lateHTML(d){
   const syns=(d.synergies||[]).map(s=>`<div class="ptb"><img src="${ICONS}/tft-synergies-set17/24-${s.slug}.svg?v=5" onerror="this.style.display='none'"/><span>${s.name}</span><span class="ptc"> ${s.count}</span></div>`).join('');
-  const units=(d.champions||[]).map(c=>`<div class="pu"><img src="${champUrl(c.slug)}" onerror="this.style.opacity=.4"/><div class="pu-name">${c.name}</div></div>`).join('');
+  const units=(d.champions||[]).map(c=>{
+    const uStats=CHAMP_STATS[c.slug]||{};
+    const uCost=uStats.cost||c.cost||0;
+    const uBorder=COST_COLORS[uCost]||'var(--border2)';
+    const uImg=champUrl(c.slug);
+    return `<div class="pu" data-tt="champ-stat" data-slug="${c.slug}" data-name="${c.name}" data-img="${uImg}"><img src="${uImg}" style="border:2px solid ${uBorder};" onerror="this.style.opacity=.4"/><div class="pu-name">${c.name}</div></div>`;
+  }).join('');
   return`${syns?`<div class="plan-traits">${syns}</div>`:''}${units?`<div class="plan-units">${units}</div>`:''}`;
 }
 
@@ -957,6 +1038,13 @@ function switchTab(phase,el){
   document.getElementById('tp-'+phase).classList.add('on');
 }
 
+function hexChampHTML(slug, name, imgUrl, phase, i){
+  const hStats = CHAMP_STATS[slug]||{};
+  const hCost  = hStats.cost||0;
+  const hBorder= COST_COLORS[hCost]||'#fbbf24';
+  return `<img src="${imgUrl}" alt="${name}" style="border:2px solid ${hBorder};border-radius:4px;width:100%;height:100%;object-fit:cover;"/><div class="hlabel">${name.split(' ')[0]}</div><div class="hrem" onclick="remHex(event,'${phase}',${i})">✕</div>`;
+}
+
 // ── HEX ───────────────────────────────────────────────────────────────────────
 function initBoard(phase,d){
   const b=document.getElementById('hb-'+phase);
@@ -969,12 +1057,19 @@ function initBoard(phase,d){
     for(let c=0;c<r.n;c++){
       const i=idx++;const hex=document.createElement('div');hex.className='hex';hex.dataset.idx=i;
       const saved=d._boards&&d._boards[phase]&&d._boards[phase].hexes[i];
-      if(saved){hex.className='hex filled';hex.innerHTML=`<img src="${champUrl(saved.slug||saved.name)}" alt="${saved.name}"/><div class="hlabel">${saved.name.split(' ')[0]}</div><div class="hrem" onclick="remHex(event,'${phase}',${i})">✕</div>`;}
-      else{hex.textContent='+';hex.addEventListener('click',()=>onHex(phase,i));}
+      if(saved){
+        hex.className='hex filled';
+        hex.dataset.tt='champ-stat';
+        hex.dataset.slug=saved.slug||saved.name;
+        hex.dataset.name=saved.name;
+        hex.dataset.img=champUrl(saved.slug||saved.name);
+        hex.innerHTML=hexChampHTML(saved.slug||saved.name, saved.name, champUrl(saved.slug||saved.name), phase, i);
+      } else{hex.textContent='+';hex.addEventListener('click',()=>onHex(phase,i));}
       row.appendChild(hex);
     }
     b.appendChild(row);
   });
+  attachTT();
 }
 function onHex(phase,idx){
   if(ai===null)return;
@@ -1002,11 +1097,15 @@ function openPicker(){
 function renderPGrid(champs){
   document.getElementById('pickerGrid').innerHTML=champs.map(c=>{
     const img=champUrl(c.slug);
-    return `<div class="pc" onclick="placeChamp('${c.slug}','${c.name.replace(/'/g,"\\'")}','${img}')">
-      <img src="${img}" onerror="this.style.opacity=.4"/>
+    const pStats=CHAMP_STATS[c.slug]||{};
+    const pCost=pStats.cost||c.cost||0;
+    const pBorder=COST_COLORS[pCost]||'var(--border2)';
+    return `<div class="pc" onclick="placeChamp('${c.slug}','${c.name.replace(/'/g,"\\'")}','${img}')" data-tt="champ-stat" data-slug="${c.slug}" data-name="${c.name}" data-img="${img}">
+      <img src="${img}" style="border:2px solid ${pBorder};" onerror="this.style.opacity=.4"/>
       <div class="pc-n">${c.name}</div>
     </div>`;
   }).join('');
+  attachTT();
 }
 function filterPicker(){
   if(ai===null)return;
@@ -1019,7 +1118,15 @@ function placeChamp(slug,name,imgUrl){
   comps[ai]._boards[pPhase].hexes[pHex]={slug,name,imgUrl};save();
   const b=document.getElementById('hb-'+pPhase);const ph=pPhase,i=pHex;
   b.querySelectorAll('.hex').forEach(h=>{
-    if(parseInt(h.dataset.idx)===i){h.className='hex filled';h.innerHTML=`<img src="${imgUrl}" alt="${name}"/><div class="hlabel">${name.split(' ')[0]}</div><div class="hrem" onclick="remHex(event,'${ph}',${i})">✕</div>`;}
+    if(parseInt(h.dataset.idx)===i){
+      h.className='hex filled';
+      h.dataset.tt='champ-stat';
+      h.dataset.slug=slug;
+      h.dataset.name=name;
+      h.dataset.img=imgUrl;
+      h.innerHTML=hexChampHTML(slug, name, imgUrl, ph, i);
+      attachTT();
+    }
   });
   closePicker();
 }
@@ -1108,6 +1215,43 @@ function ttSetStar(slug, star){
   }
 }
 
+function buildItemCard(slug){
+  const ns = normItemSlug(slug);
+  const it = ITEM_DATA[ns] || ITEM_DATA[slug] || null;
+  if(!it) return null;
+  const img = itemUrl(ns);
+  const isComplete = it.type === 'complete';
+
+  // Stat rows — reuse the same icons as champion cards
+  const STAT_LABELS = {hp:'Health', armor:'Armor', mr:'Magic Resist', spd:'Speed', ad:'Attack Dmg', ap:'Ability Power', dps:'DPS', mana:'Mana'};
+  const STAT_ICON_KEYS = {hp:'hp', armor:'armor', mr:'mr', spd:'spd', ad:'dmg', ap:'mr', dps:'dps', mana:'mana'};
+
+  let statsHtml = '';
+  if(isComplete && Object.keys(it.stats).length){
+    const entries = Object.entries(it.stats);
+    statsHtml = `<div class="tt-stats-grid" style="margin-top:6px;">
+      ${entries.map(([k,v])=>`
+        <div class="tt-stat">${statIcon(STAT_ICON_KEYS[k]||'hp')} ${STAT_LABELS[k]||k} <span class="tt-stat-val">+${v}</span></div>
+      `).join('')}
+    </div>`;
+  }
+
+  const typeLabel = it.type === 'component' ? 'Component' : 'Item';
+
+  return `
+    <div style="min-width:200px;max-width:240px;">
+      <div class="tt-champ-head">
+        <img style="width:36px;height:36px;border-radius:5px;border:1px solid var(--border2);object-fit:cover;flex-shrink:0;" src="${img}" onerror="this.style.opacity=.4"/>
+        <div class="tt-champ-info">
+          <div class="tt-champ-name" style="color:var(--gold2)">${it.name}</div>
+          <div style="font-size:8px;color:var(--text3);font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">${typeLabel}</div>
+        </div>
+      </div>
+      ${it.desc ? `<div class="tt-ability"><div class="tt-ability-desc">${it.desc}</div></div>` : ''}
+      ${statsHtml}
+    </div>`;
+}
+
 function attachTT(){
   const tt=document.getElementById('tt');
   document.querySelectorAll('[data-tt]').forEach(el=>{
@@ -1118,8 +1262,7 @@ function attachTT(){
     fresh.addEventListener('mouseenter',e=>{
       const type=fresh.dataset.tt, name=fresh.dataset.name||'', img=fresh.dataset.img||'', slug=fresh.dataset.slug||'';
 
-      if(type==='champ-stat'){
-        if(!CHAMP_STATS[slug]){
+      if(type==='champ-stat'){        if(!CHAMP_STATS[slug]){
           // fallback: show just name + image
           tt.className='tt on';
           tt.innerHTML=`<div class="tt-n">${name}</div><img class="tt-img" src="${img}" style="display:block"/>`;
@@ -1129,6 +1272,21 @@ function attachTT(){
         const card = buildChampStatCard(slug, 1);
         tt.className='tt on interactive';
         tt.innerHTML = card;
+        posTT(e); return;
+      }
+
+      // Item tooltip
+      if(type==='item'){
+        const islug = fresh.dataset.slug || '';
+        const card = buildItemCard(islug);
+        if(card){
+          tt.className='tt on';
+          tt.innerHTML=card;
+          posTT(e); return;
+        }
+        // fallback: name + image
+        tt.className='tt on';
+        tt.innerHTML=`<div class="tt-n">${name}</div><img class="tt-img" src="${img}" style="display:${img?'block':'none'}" onerror="this.style.display='none'"/>`;
         posTT(e); return;
       }
 
@@ -1474,6 +1632,7 @@ window.addEventListener('beforeunload',saveNotes);
 // Load CSV lookup then re-render active comp so tooltips use fresh data
 loadLookup().then(()=>{ if(comps.length && ai !== null) renderComp(comps[ai]); });
 loadChampStats().then(()=>{ if(comps.length && ai !== null) renderComp(comps[ai]); });
+loadItemData().then(()=>{ if(comps.length && ai !== null) renderComp(comps[ai]); });
 
 // ── INIT (save override for cloud sync) ──────────────────────────────────────
 const _origSave = save;
