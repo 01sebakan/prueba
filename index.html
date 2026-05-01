@@ -266,6 +266,7 @@ body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234
 .citem img.ci-img{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
 .citem-name{font-size:9px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .citem-comps{display:flex;gap:2px;margin-top:1px;}
+.comp-wrap{display:inline-flex;cursor:default;}
 .comp-icon{width:13px;height:13px;border-radius:2px;border:1px solid var(--border);}
 
 /* ─── MIDDLE COLUMN ─── */
@@ -595,39 +596,127 @@ function toRawImg(url){
 }
 
 function champUrl(slug){ return _USING_GH ? `${GITHUB_ASSETS}/champions/${slug}.png` : `${CDN}/champions/icons/set17/${slug}.png?v=5`; }
-// Slug aliases: comp JSON slug → your CSV/GitHub slug
+// Slug aliases: Mobalytics comp JSON slug → your CSV/GitHub slug
+// Add any new ones here if items break; the right-hand side must match your CSV slug exactly.
 const ITEM_SLUG_MAP = {
-  'krakens-fury':        'krakens-fury',   // already correct
-  'krakensfury':         'krakens-fury',
-  'dragons-claw':        'dragons-claw',
-  'dragonsclaw':         'dragons-claw',
-  'nashors-tooth':       'nashors-tooth',
-  'nashorsTooth':        'nashors-tooth',
-  'rabadons-deathcap':   'rabadons-deathcap',
-  'rabadonsdeathcap':    'rabadons-deathcap',
-  'titans-resolve':      'titans-resolve',
-  'titansresolve':       'titans-resolve',
-  'steraks-gage':        'steraks-gage',
-  'steraksgage':         'steraks-gage',
-  'archangels-staff':    'archangels-staff',
-  'archangelsstaff':     'archangels-staff',
-  'protectors-vow':      'protectors-vow',
-  'protectorsvow':       'protectors-vow',
-  'strikers-flail':      'strikers-flail',
-  'strikers_flail':      'strikers-flail',
-  'giants-belt':         'giants-belt',
-  'giantsbelt':          'giants-belt',
-  'needlessly-large-rod':'needlessly-large-rod',
-  'tear-of-the-goddess': 'tear-of-the-goddess',
-  'tearofthegoddess':    'tear-of-the-goddess',
-  'sparring-gloves':     'sparring-gloves',
-  'sparringgloves':      'sparring-gloves',
-  'thiefs-gloves':       'thiefs-gloves',
-  'thiefsgloves':        'thiefs-gloves',
-  'guinsoos-rageblade':  'guinsoos-rageblade',
-  'guinsoosrageblade':   'guinsoos-rageblade',
+  // Mobalytics uses these slugs → your CSV uses different ones
+  'guardbreaker':            'strikers-flail',
+  'strikers_flail':          'strikers-flail',
+  'blue-sentinel':           'blue-buff',
+  'blue_buff':               'blue-buff',
+  'bluebuff':                'blue-buff',
+  'spear-of-shojin':         'spear-of-shojin',   // same, just in case
+  'spear_of_shojin':         'spear-of-shojin',
+  'spearofshojin':           'spear-of-shojin',
+  'spirit-visage':           'spirit-visage',
+  'spirit_visage':           'spirit-visage',
+  'spiritvisage':            'spirit-visage',
+  'void-staff':              'void-staff',
+  'void_staff':              'void-staff',
+  'voidstaff':               'void-staff',
+  'protectors-vow':          'protectors-vow',
+  'protectors_vow':          'protectors-vow',
+  'protectorsvow':           'protectors-vow',
+  "protector's-vow":         'protectors-vow',
+  'krakens-fury':            'krakens-fury',
+  'krakensfury':             'krakens-fury',
+  'kraken-slayer':           'krakens-fury',
+  'dragons-claw':            'dragons-claw',
+  'dragonsclaw':             'dragons-claw',
+  'nashors-tooth':           'nashors-tooth',
+  'nashorsTooth':            'nashors-tooth',
+  'nashors_tooth':           'nashors-tooth',
+  "nashor's-tooth":          'nashors-tooth',
+  'rabadons-deathcap':       'rabadons-deathcap',
+  'rabadonsdeathcap':        'rabadons-deathcap',
+  "rabadon's-deathcap":      'rabadons-deathcap',
+  'titans-resolve':          'titans-resolve',
+  'titansresolve':           'titans-resolve',
+  "titan's-resolve":         'titans-resolve',
+  'steraks-gage':            'steraks-gage',
+  'steraksgage':             'steraks-gage',
+  "sterak's-gage":           'steraks-gage',
+  'archangels-staff':        'archangels-staff',
+  'archangelsstaff':         'archangels-staff',
+  "archangel's-staff":       'archangels-staff',
+  'giants-belt':             'giants-belt',
+  'giantsbelt':              'giants-belt',
+  "giant's-belt":            'giants-belt',
+  'needlessly-large-rod':    'needlessly-large-rod',
+  'tear-of-the-goddess':     'tear-of-the-goddess',
+  'tearofthegoddess':        'tear-of-the-goddess',
+  'sparring-gloves':         'sparring-gloves',
+  'sparringgloves':          'sparring-gloves',
+  'thiefs-gloves':           'thiefs-gloves',
+  'thiefsgloves':            'thiefs-gloves',
+  "thief's-gloves":          'thiefs-gloves',
+  'guinsoos-rageblade':      'guinsoos-rageblade',
+  'guinsoosrageblade':       'guinsoos-rageblade',
+  "guinsoo's-rageblade":     'guinsoos-rageblade',
+  'edge-of-night':           'edge-of-night',
+  'edgeofnight':             'edge-of-night',
+  'hand-of-justice':         'hand-of-justice',
+  'handofjustice':           'hand-of-justice',
+  'infinity-edge':           'infinity-edge',
+  'infinityedge':            'infinity-edge',
+  'ionic-spark':             'ionic-spark',
+  'ionicspark':              'ionic-spark',
+  'jeweled-gauntlet':        'jeweled-gauntlet',
+  'jeweledgauntlet':         'jeweled-gauntlet',
+  'last-whisper':            'last-whisper',
+  'lastwhisper':             'last-whisper',
+  'giant-slayer':            'giant-slayer',
+  'giantslayer':             'giant-slayer',
+  'hextech-gunblade':        'hextech-gunblade',
+  'hextechgunblade':         'hextech-gunblade',
+  'spear_shojin':            'spear-of-shojin',
+  'bramble-vest':            'bramble-vest',
+  'bramblevest':             'bramble-vest',
+  'warmogs-armor':           'warmogs-armor',
+  'warmogsarmor':            'warmogs-armor',
+  "warmog's-armor":          'warmogs-armor',
+  'morellonomicon':          'morellonomicon',
+  'evenshroud':              'evenshroud',
+  'crownguard':              'crownguard',
+  'deathblade':              'deathblade',
+  'quicksilver':             'quicksilver',
+  'red-buff':                'red-buff',
+  'redbuff':                 'red-buff',
+  'sunfire-cape':            'sunfire-cape',
+  'sunfirecape':             'sunfire-cape',
+  'steadfast-hammer':        'steadfast-hammer',
+  'steadfasthammer':         'steadfast-hammer',
+  'adaptive-helm':           'adaptive-helm',
+  'adaptivehelm':            'adaptive-helm',
+  'gargoyle-stoneplate':     'gargoyle-stoneplate',
+  'gargoylestoneplate':      'gargoyle-stoneplate',
+  'bf-sword':                'bf-sword',
+  'bfsword':                 'bf-sword',
+  'chain-vest':              'chain-vest',
+  'chainvest':               'chain-vest',
+  'frying-pan':              'frying-pan',
+  'fryingpan':               'frying-pan',
+  'needlesslylarge-rod':     'needlessly-large-rod',
+  'negatron-cloak':          'negatron-cloak',
+  'negatroncloak':           'negatron-cloak',
+  'recurve-bow':             'recurve-bow',
+  'recurvebow':              'recurve-bow',
+  'spatula':                 'spatula',
 };
-function normItemSlug(slug){ return ITEM_SLUG_MAP[slug] || slug; }
+
+// After ITEM_DATA loads, build reverse lookup from display name → slug
+function buildItemNameMap(){
+  for(const [slug, item] of Object.entries(ITEM_DATA)){
+    const nameSlug = item.name.toLowerCase().replace(/['\u2019]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    if(!ITEM_SLUG_MAP[nameSlug]) ITEM_SLUG_MAP[nameSlug] = slug;
+  }
+}
+
+function normItemSlug(slug){
+  if(!slug) return slug;
+  const clean = slug.toLowerCase().replace(/['\u2019]/g,'').replace(/[^a-z0-9-_]/g,'-').replace(/-+/g,'-');
+  return ITEM_SLUG_MAP[slug] || ITEM_SLUG_MAP[clean] || slug;
+}
 function itemUrl(slug){ const s=normItemSlug(slug); return _USING_GH ? `${GITHUB_ASSETS}/items/${s}.png` : `${CDN}/game-items/set17/${s}.png?v=5`; }
 function badgeUrl(b){    return _USING_GH ? `${GITHUB_ASSETS}/badges/${b}.png`       : `${CDN}/synergies-badges/${b}.png`; }
 
@@ -819,7 +908,7 @@ function renderComp(d){
           return `
           <div class="citem" data-tt="item" data-slug="${it.slug}" data-name="${it.name}" data-img="${iImg}">
             <img class="ci-img" src="${iImg}" onerror="this.style.opacity=.4"/>
-            <div class="citem-name">${it.name}${(it.components||[]).length?`<div class="citem-comps">${it.components.map(x=>`<img class="comp-icon" src="${itemUrl(x)}" onerror="this.style.opacity=.3"/>`).join('')}</div>`:''}</div>
+            <div class="citem-name">${it.name}${(it.components||[]).length?`<div class="citem-comps">${it.components.map(x=>`<div class="comp-wrap" data-tt="item" data-slug="${normItemSlug(x)}" data-name="${(ITEM_DATA[normItemSlug(x)]||{}).name||x}" data-img="${itemUrl(x)}"><img class="comp-icon" src="${itemUrl(x)}" onerror="this.style.opacity=.3"/></div>`).join('')}</div>`:''}</div>
           </div>`;
         }).join('')}
       </div>
@@ -1252,82 +1341,98 @@ function buildItemCard(slug){
     </div>`;
 }
 
-function attachTT(){
-  const tt=document.getElementById('tt');
-  document.querySelectorAll('[data-tt]').forEach(el=>{
-    // Remove old listeners by replacing clone
-    const fresh=el.cloneNode(true);
-    el.parentNode.replaceChild(fresh,el);
-    
-    fresh.addEventListener('mouseenter',e=>{
-      const type=fresh.dataset.tt, name=fresh.dataset.name||'', img=fresh.dataset.img||'', slug=fresh.dataset.slug||'';
+// ── TOOLTIPS (event delegation — stable, no flicker, no cloneNode) ────────────
+let _ttTarget = null;
+function attachTT(){ /* no-op — delegation handles everything */ }
 
-      if(type==='champ-stat'){        if(!CHAMP_STATS[slug]){
-          // fallback: show just name + image
-          tt.className='tt on';
-          tt.innerHTML=`<div class="tt-n">${name}</div><img class="tt-img" src="${img}" style="display:block"/>`;
-          posTT(e); return;
-        }
-        _ttSlug = slug; _ttStar = 1;
-        const card = buildChampStatCard(slug, 1);
-        tt.className='tt on interactive';
-        tt.innerHTML = card;
-        posTT(e); return;
-      }
+function initTooltips(){
+  const tt = document.getElementById('tt');
+  if(!tt) return;
 
-      // Item tooltip
-      if(type==='item'){
-        const islug = fresh.dataset.slug || '';
-        const card = buildItemCard(islug);
-        if(card){
-          tt.className='tt on';
-          tt.innerHTML=card;
-          posTT(e); return;
-        }
-        // fallback: name + image
-        tt.className='tt on';
-        tt.innerHTML=`<div class="tt-n">${name}</div><img class="tt-img" src="${img}" style="display:${img?'block':'none'}" onerror="this.style.display='none'"/>`;
-        posTT(e); return;
-      }
-
-      // Non-champ tooltips: original logic
-      tt.className='tt on';
-      tt.innerHTML=`<div class="tt-n" id="tt-n">${name}</div><img class="tt-img" id="tt-img" src="${img}" style="display:${img?'block':'none'}" onerror="this.style.display='none'"/><div class="tt-levels" id="tt-lv"></div>`;
-      let html='';
-      if(type==='trait'){
-        const tslug=fresh.dataset.slug||'',count=parseInt(fresh.dataset.count||0);
-        const info=TRAITS[tslug];
-        if(info){
-          const effects=info.effects||{};
-          const activeN=info.levels&&info.levels.filter(n=>count>=n).pop();
-          if(info.innate)html+=`<div style="font-size:9px;color:var(--text2);margin-bottom:5px;line-height:1.5;border-bottom:1px solid var(--border);padding-bottom:4px;">${info.innate}</div>`;
-          if(info.levels&&info.levels.length){html+=info.levels.map((n,i)=>{
-            const isCurr=n===activeN,isOn=count>=n,bn=BADGES[Math.min(i,BADGES.length-1)];
-            return`<div class="tt-lv${isCurr?' on':''}">
-              <img class="tt-badge" src="${badgeUrl(bn)}" onerror="this.style.opacity=.3"/>
-              <span class="tt-num" style="color:${isOn?'var(--gold2)':'var(--text3)'}">${n}</span>
-              <div style="flex:1;font-size:9px;color:${isOn?'var(--text)':'var(--text3)'};line-height:1.4;">${effects[n]||''}</div>
-              ${isCurr?'<span class="tt-tag">ACTIVE</span>':''}
-            </div>`;
-          }).join('');}
-        }
-      }
-      if(type==='augment'){const desc=fresh.dataset.desc||'';if(desc)html=`<div style="font-size:10px;color:var(--text2);line-height:1.6;">${desc}</div>`;}
-      document.getElementById('tt-lv').innerHTML=html;
-      posTT(e);
-    });
-    fresh.addEventListener('mousemove',e=>{
-      if(!tt.classList.contains('interactive')) posTT(e);
-    });
-    fresh.addEventListener('mouseleave',()=>{
-      // Small delay so star buttons remain clickable
-      setTimeout(()=>{ if(!tt.matches(':hover')) tt.className='tt'; }, 120);
-    });
+  document.addEventListener('mouseover', e=>{
+    const el = e.target.closest('[data-tt]');
+    if(el){ _ttTarget = el; _showTT(el, e); }
+    else if(!tt.contains(e.target)){ _hideTT(); }
   });
 
-  // Tooltip self-hover for interactive mode
-  tt.addEventListener('mouseleave',()=>{ tt.className='tt'; });
+  document.addEventListener('mousemove', e=>{
+    if(!tt.classList.contains('on')) return;
+    if(tt.classList.contains('interactive')) return; // tooltip handles its own position
+    posTT(e);
+  });
+
+  document.addEventListener('mouseout', e=>{
+    if(!_ttTarget) return;
+    const to = e.relatedTarget;
+    if(!to) { _hideTT(); return; }
+    if(_ttTarget.contains(to) || to === _ttTarget) return;
+    if(tt.contains(to)) return;
+    if(to.closest('[data-tt]')) return; // moved to another hoverable
+    _hideTT();
+  });
+
+  tt.addEventListener('mouseleave', e=>{
+    const to = e.relatedTarget;
+    if(to && to.closest('[data-tt]')) return;
+    _hideTT();
+  });
 }
+
+function _hideTT(){ document.getElementById('tt').className='tt'; _ttTarget=null; }
+
+function _showTT(el, e){
+  const tt   = document.getElementById('tt');
+  const type = el.dataset.tt;
+  const name = el.dataset.name || '';
+  const img  = el.dataset.img  || '';
+  const slug = el.dataset.slug || '';
+
+  if(type==='champ-stat'){
+    if(!CHAMP_STATS[slug]){
+      tt.className='tt on';
+      tt.innerHTML=`<div class="tt-n">${name}</div><img class="tt-img" src="${img}" style="display:block"/>`;
+    } else {
+      _ttStar=1; _ttSlug=slug;
+      tt.className='tt on interactive';
+      tt.innerHTML=buildChampStatCard(slug,1);
+    }
+    posTT(e); return;
+  }
+
+  if(type==='item'){
+    const card=buildItemCard(slug);
+    tt.className='tt on';
+    tt.innerHTML=card || `<div class="tt-n">${name}</div><img class="tt-img" src="${img}" style="display:${img?'block':'none'}" onerror="this.style.display='none'"/>`;
+    posTT(e); return;
+  }
+
+  // trait / augment / generic
+  tt.className='tt on';
+  tt.innerHTML=`<div class="tt-n" id="tt-n">${name}</div><img class="tt-img" id="tt-img" src="${img}" style="display:${img?'block':'none'}" onerror="this.style.display='none'"/><div class="tt-levels" id="tt-lv"></div>`;
+  let html='';
+  if(type==='trait'){
+    const tslug=el.dataset.slug||'', count=parseInt(el.dataset.count||0);
+    const info=TRAITS[tslug];
+    if(info){
+      const effects=info.effects||{};
+      const activeN=info.levels&&info.levels.filter(n=>count>=n).pop();
+      if(info.innate) html+=`<div style="font-size:9px;color:var(--text2);margin-bottom:5px;line-height:1.5;border-bottom:1px solid var(--border);padding-bottom:4px;">${info.innate}</div>`;
+      if(info.levels&&info.levels.length) html+=info.levels.map((n,i)=>{
+        const isCurr=n===activeN,isOn=count>=n,bn=BADGES[Math.min(i,BADGES.length-1)];
+        return`<div class="tt-lv${isCurr?' on':''}">
+          <img class="tt-badge" src="${badgeUrl(bn)}" onerror="this.style.opacity=.3"/>
+          <span class="tt-num" style="color:${isOn?'var(--gold2)':'var(--text3)'}">${n}</span>
+          <div style="flex:1;font-size:9px;color:${isOn?'var(--text)':'var(--text3)'};line-height:1.4;">${effects[n]||''}</div>
+          ${isCurr?'<span class="tt-tag">ACTIVE</span>':''}
+        </div>`;
+      }).join('');
+    }
+  }
+  if(type==='augment'){ const desc=el.dataset.desc||''; if(desc) html=`<div style="font-size:10px;color:var(--text2);line-height:1.6;">${desc}</div>`; }
+  document.getElementById('tt-lv').innerHTML=html;
+  posTT(e);
+}
+
 function posTT(e){
   const t=document.getElementById('tt');
   let x=e.clientX+14,y=e.clientY-8;
@@ -1632,7 +1737,7 @@ window.addEventListener('beforeunload',saveNotes);
 // Load CSV lookup then re-render active comp so tooltips use fresh data
 loadLookup().then(()=>{ if(comps.length && ai !== null) renderComp(comps[ai]); });
 loadChampStats().then(()=>{ if(comps.length && ai !== null) renderComp(comps[ai]); });
-loadItemData().then(()=>{ if(comps.length && ai !== null) renderComp(comps[ai]); });
+loadItemData().then(()=>{ buildItemNameMap(); if(comps.length && ai !== null) renderComp(comps[ai]); });
 
 // ── INIT (save override for cloud sync) ──────────────────────────────────────
 const _origSave = save;
@@ -1643,6 +1748,7 @@ function save(){
 
 loadColorPrefs();
 loadLayoutPref();
+initTooltips();
 cloudLoad();
 </script>
 
