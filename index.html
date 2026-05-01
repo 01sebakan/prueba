@@ -359,6 +359,25 @@ body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234
 .ci[data-cost="4"]{border-color:#c084fc;}
 .ci[data-cost="5"]{border-color:#fbbf24;}
 
+/* ─── SIDEBAR FILTER ─── */
+.sb-head-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px 4px;}
+.sb-head-label{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--text3);text-transform:uppercase;}
+.sb-filter-btn{background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:3px;color:var(--text3);font-size:11px;line-height:1;transition:color .15s,background .15s;}
+.sb-filter-btn:hover,.sb-filter-btn.active{color:var(--accent2);background:var(--bg3);}
+.sb-filter-panel{display:none;background:var(--bg3);border-bottom:1px solid var(--border);padding:8px 10px;gap:6px;flex-direction:column;}
+.sb-filter-panel.open{display:flex;}
+.sfp-label{font-family:'Rajdhani',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-bottom:2px;}
+.sfp-row{display:flex;flex-wrap:wrap;gap:3px;}
+.sfp-chip{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:600;padding:2px 7px;border-radius:3px;border:1px solid var(--border2);background:var(--bg2);color:var(--text3);cursor:pointer;transition:all .12s;user-select:none;}
+.sfp-chip:hover{border-color:var(--accent);color:var(--text);}
+.sfp-chip.on{background:rgba(99,102,241,.2);border-color:var(--accent);color:var(--accent2);}
+.sfp-sort-row{display:flex;gap:3px;}
+.sfp-sort-btn{flex:1;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:600;padding:3px 4px;border-radius:3px;border:1px solid var(--border2);background:var(--bg2);color:var(--text3);cursor:pointer;text-align:center;transition:all .12s;user-select:none;}
+.sfp-sort-btn:hover{border-color:var(--accent);color:var(--text);}
+.sfp-sort-btn.on{background:rgba(99,102,241,.2);border-color:var(--accent);color:var(--accent2);}
+.sfp-reset{font-family:'Rajdhani',sans-serif;font-size:8px;font-weight:600;color:var(--text3);background:none;border:none;cursor:pointer;text-align:right;padding:0;letter-spacing:.5px;text-decoration:underline;}
+.sfp-reset:hover{color:var(--accent2);}
+
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;}
 .overlay.on{display:flex;}
 .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:16px;}
@@ -411,7 +430,29 @@ body.light .sel-tag{background:rgba(147,51,234,.12);border-color:rgba(147,51,234
   <div class="body">
     <div class="sidebar sidebar-desktop" id="sidebar">
       <div class="sb-home"><button class="sb-home-btn" id="homeBtn" onclick="showHome()">🏠 Scout Opener</button></div>
-      <div class="sb-head">Saved Comps</div>
+      <div class="sb-head-row">
+        <span class="sb-head-label">Saved Comps</span>
+        <button class="sb-filter-btn" id="sbFilterBtn" onclick="toggleFilterPanel()" title="Sort &amp; Filter">⚙︎</button>
+      </div>
+      <div class="sb-filter-panel" id="sbFilterPanel">
+        <div>
+          <div class="sfp-label">Sort by</div>
+          <div class="sfp-sort-row">
+            <button class="sfp-sort-btn on" id="sort-name" onclick="setSort('name')">A→Z</button>
+            <button class="sfp-sort-btn" id="sort-tier" onclick="setSort('tier')">Tier</button>
+            <button class="sfp-sort-btn" id="sort-diff" onclick="setSort('diff')">Difficulty</button>
+          </div>
+        </div>
+        <div>
+          <div class="sfp-label">Filter Tier</div>
+          <div class="sfp-row" id="filterTierRow"></div>
+        </div>
+        <div>
+          <div class="sfp-label">Filter Difficulty</div>
+          <div class="sfp-row" id="filterDiffRow"></div>
+        </div>
+        <button class="sfp-reset" onclick="resetFilters()">Reset all</button>
+      </div>
       <div id="compList"><div class="sb-empty" id="emptyMsg">No comps yet.<br>Click <b>Import Comp</b><br>to get started.</div></div>
     </div>
     <div class="content">
@@ -795,13 +836,13 @@ function loadLayoutPref(){
   try{const v=localStorage.getItem('tft17_layout');if(v==='mobile'){isMobile=true;document.body.classList.add('mobile');document.getElementById('layoutToggle').textContent='🖥️ Desktop version';}}catch(e){}
 }
 function renderMobileNav(){
-  const sel=document.getElementById('mobileSelect');
-  if(!sel)return;
-  sel.innerHTML='<option value="">— Select comp —</option>';
-  comps.forEach((c,i)=>{
-    const opt=document.createElement('option');
-    opt.value=i; opt.textContent=`Tier ${c.tier||'?'} · ${c.title}`;
-    if(i===ai)opt.selected=true;
+  const sel = document.getElementById('mobileSelect');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— Select comp —</option>';
+  getFilteredSortedComps().forEach(({c,i})=>{
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = `Tier ${c.tier||'?'} · ${c.title}`;
+    if(i===ai) opt.selected = true;
     sel.appendChild(opt);
   });
 }
@@ -833,17 +874,107 @@ function doImport(){
 }
 
 // ── SIDEBAR ────────────────────────────────────────────────────────────────────
-function renderSidebar(){
-  const list=document.getElementById('compList');
-  document.getElementById('emptyMsg').style.display=comps.length?'none':'block';
-  list.querySelectorAll('.sb-item').forEach(e=>e.remove());
-  comps.forEach((c,i)=>{
-    const el=document.createElement('div');
-    el.className='sb-item'+(i===ai?' active':'');
-    el.innerHTML=`<img class="sb-thumb" src="${toRawImg(c.thumbImg)||''}" onerror="this.style.opacity=.3"><div class="sb-info"><div class="sb-name">${c.title}</div><div class="sb-meta">Tier ${c.tier} · ${c.difficulty||'?'}</div></div><div class="sb-del" onclick="delComp(event,${i})">✕</div>`;
-    el.addEventListener('click',()=>showComp(i));
-    list.appendChild(el);
+// ── SORT & FILTER STATE ───────────────────────────────────────────────────────
+const TIER_ORDER  = {S:0,A:1,B:2,C:3,D:4};
+const DIFF_ORDER  = {Easy:0,Medium:1,Hard:2};
+
+let sortField    = 'name';   // 'name' | 'tier' | 'diff'
+let filterTiers  = new Set(); // empty = show all
+let filterDiffs  = new Set(); // empty = show all
+
+function toggleFilterPanel(){
+  const p = document.getElementById('sbFilterPanel');
+  const b = document.getElementById('sbFilterBtn');
+  const open = p.classList.toggle('open');
+  b.classList.toggle('active', open);
+  if(open) renderFilterChips();
+}
+
+function renderFilterChips(){
+  const allTiers = [...new Set(comps.map(c=>c.tier).filter(Boolean))].sort((a,b)=>(TIER_ORDER[a]??9)-(TIER_ORDER[b]??9));
+  const allDiffs = [...new Set(comps.map(c=>c.difficulty).filter(Boolean))].sort((a,b)=>(DIFF_ORDER[a]??9)-(DIFF_ORDER[b]??9));
+
+  document.getElementById('filterTierRow').innerHTML = allTiers.map(t=>
+    `<span class="sfp-chip${filterTiers.has(t)?' on':''}" onclick="toggleFilterTier('${t}')">${t}</span>`
+  ).join('');
+  document.getElementById('filterDiffRow').innerHTML = allDiffs.map(d=>
+    `<span class="sfp-chip${filterDiffs.has(d)?' on':''}" onclick="toggleFilterDiff('${d}')">${d}</span>`
+  ).join('');
+
+  // Highlight active sort button
+  ['name','tier','diff'].forEach(f=>{
+    const btn = document.getElementById('sort-'+f);
+    if(btn) btn.classList.toggle('on', sortField===f);
   });
+}
+
+function setSort(field){
+  sortField = field;
+  renderFilterChips();
+  renderSidebar();
+}
+
+function toggleFilterTier(t){
+  filterTiers.has(t) ? filterTiers.delete(t) : filterTiers.add(t);
+  renderFilterChips();
+  renderSidebar();
+}
+
+function toggleFilterDiff(d){
+  filterDiffs.has(d) ? filterDiffs.delete(d) : filterDiffs.add(d);
+  renderFilterChips();
+  renderSidebar();
+}
+
+function resetFilters(){
+  sortField='name'; filterTiers.clear(); filterDiffs.clear();
+  renderFilterChips();
+  renderSidebar();
+}
+
+function getFilteredSortedComps(){
+  // Filter
+  let result = comps.map((c,i)=>({c,i}));
+  if(filterTiers.size) result = result.filter(({c})=>filterTiers.has(c.tier));
+  if(filterDiffs.size) result = result.filter(({c})=>filterDiffs.has(c.difficulty));
+
+  // Sort
+  result.sort((a,b)=>{
+    if(sortField==='name')
+      return (a.c.title||'').localeCompare(b.c.title||'');
+    if(sortField==='tier')
+      return (TIER_ORDER[a.c.tier]??9) - (TIER_ORDER[b.c.tier]??9) || (a.c.title||'').localeCompare(b.c.title||'');
+    if(sortField==='diff')
+      return (DIFF_ORDER[a.c.difficulty]??9) - (DIFF_ORDER[b.c.difficulty]??9) || (a.c.title||'').localeCompare(b.c.title||'');
+    return 0;
+  });
+  return result;
+}
+
+function renderSidebar(){
+  const list = document.getElementById('compList');
+  document.getElementById('emptyMsg').style.display = comps.length ? 'none' : 'block';
+  list.querySelectorAll('.sb-item').forEach(e=>e.remove());
+
+  const filtered = getFilteredSortedComps();
+
+  // Show a "no results" message if filters hide everything
+  let noRes = document.getElementById('sbNoResults');
+  if(!noRes){ noRes=document.createElement('div'); noRes.id='sbNoResults'; noRes.style.cssText='font-size:9px;color:var(--text3);padding:8px 10px;'; list.appendChild(noRes); }
+  noRes.textContent = (comps.length && !filtered.length) ? 'No comps match filters.' : '';
+
+  filtered.forEach(({c,i})=>{
+    const el = document.createElement('div');
+    el.className = 'sb-item' + (i===ai ? ' active' : '');
+    el.innerHTML = `<img class="sb-thumb" src="${toRawImg(c.thumbImg)||''}" onerror="this.style.opacity=.3"><div class="sb-info"><div class="sb-name">${c.title}</div><div class="sb-meta">Tier ${c.tier} · ${c.difficulty||'?'}</div></div><div class="sb-del" onclick="delComp(event,${i})">✕</div>`;
+    el.addEventListener('click', ()=>showComp(i));
+    list.insertBefore(el, noRes);
+  });
+
+  // Update filter button badge if any filters are active
+  const filterBtn = document.getElementById('sbFilterBtn');
+  if(filterBtn) filterBtn.classList.toggle('active', filterTiers.size>0 || filterDiffs.size>0 || sortField!=='name');
+
   renderMobileNav();
 }
 function delComp(e,i){
